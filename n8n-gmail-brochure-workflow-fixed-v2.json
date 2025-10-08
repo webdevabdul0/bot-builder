@@ -1,0 +1,275 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmail-brochure",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "80bba8f7-99d6-4b30-b163-3026ba1fa6a8",
+      "name": "Gmail Brochure Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        32
+      ],
+      "webhookId": "gmail-brochure-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "brochure-request",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "brochure_request",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "84c0e114-828b-4f09-b888-f4d5b2f227a7",
+      "name": "Is Brochure Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        96,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.customer?.email  }}",
+        "subject": "={{ $json.body.treatment?.name || 'Dental Treatment' }} Information - {{ $json.body.company?.name || 'Our Clinic' }}",
+        "message": "=Hi {{ $json.body.customer?.name || 'Valued Customer' }},<br><br>\n\nThank you for your interest in our {{ $json.body.treatment?.name || 'dental treatment' }} services at {{ $json.body.company?.name || 'our clinic' }}.<br><br>\n\nWe're excited to share detailed information about {{ $json.body.treatment?.name || 'this treatment' }} with you. Please find our comprehensive brochure at {{ $json.body.treatment?.brochureUrl || 'our website' }} that covers:<br><br>\n\n<b>• Treatment overview and benefits</b><br>\n<b>• What to expect during your visit</b><br>\n<b>• Pricing and package options</b><br>\n<b>• Before and after care instructions</b><br>\n<b>• Frequently asked questions</b><br><br>\n\n{{ $json.body.treatment?.description || 'We look forward to providing you with excellent dental care.' }}<br><br>\n\n<b>Next Steps:</b><br>\n1. Review the attached brochure<br>\n2. Contact us to schedule your free consultation<br>\n3. Ask any questions you may have<br><br>\n\n<b>Contact Information:</b><br>\n📞 Phone: {{ $json.body.company?.phone || 'Contact us for details' }}<br>\n📧 Email: {{ $json.body.company?.ownerEmail || 'Contact us for details' }}<br>\n🌐 Website: {{ $json.body.company?.website || 'Visit our website for more information' }}<br><br>\n\nWe look forward to helping you achieve your dental goals!<br><br>\n\nBest regards,<br>\n{{ $json.body.company?.name || 'Our Dental Team' }}<br><br>\n\n<hr>\n<small>This email was sent via our automated system. If you have any questions, please don't hesitate to contact us directly.</small>\n",
+        "options": {}
+      },
+      "id": "4100f809-5ede-44a1-80b4-6ee110e04058",
+      "name": "Send Brochure Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        544,
+        -208
+      ],
+      "webhookId": "6da5977a-5702-45bd-852e-04e7d0383e21",
+      "alwaysOutputData": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oR8CEJE3EHrbt0x4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Is Brochure Request?').item.json.body.customer?.email || $('Is Brochure Request?').item.json.body.company?.ownerEmail }}",
+        "subject": "=Thank you for your interest - {{ $('Is Brochure Request?').item.json.body.company?.name || 'Our Clinic' }}",
+        "message": "=Hi {{ $('Is Brochure Request?').item.json.body.customer?.name || 'Valued Customer' }},<br><br>\n\nThank you for your interest in our {{ $('Is Brochure Request?').item.json.body.treatment?.name || 'dental treatment' }} services at {{ $('Is Brochure Request?').item.json.body.company?.name || 'our clinic' }}.<br><br>\n\nWe're currently preparing a detailed brochure for {{ $('Is Brochure Request?').item.json.body.treatment?.name || 'this treatment' }} and will send it to you within 24 hours.<br><br>\n\n<b>What to expect:</b><br>\n• Comprehensive treatment information<br>\n• Pricing and package details<br>\n• Before and after care instructions<br><br>\n\n{{ $('Is Brochure Request?').item.json.body.treatment?.description || 'We look forward to providing you with excellent dental care.' }}<br><br>\n\n<b>In the meantime:</b><br>\n• Visit our website for more information<br>\n• Call us to schedule a free consultation<br>\n• Ask any questions you may have<br><br>\n\n<b>Contact Information:</b><br>\nPhone: {{ $('Is Brochure Request?').item.json.body.company?.phone || 'Contact us for details' }}<br>\nEmail: {{ $('Is Brochure Request?').item.json.body.company?.ownerEmail || 'Contact us for details' }}<br>\nWebsite: {{ $('Is Brochure Request?').item.json.body.company?.website || 'Visit our website for more information' }}<br><br>\n\nWe appreciate your interest and look forward to serving you!<br><br>\n\nBest regards,<br>\n{{ $('Is Brochure Request?').item.json.body.company?.name || 'Our Dental Team' }}<br><br>\n\n<hr>\n<small>This email was sent via our automated system. If you have any questions, please contact us directly.</small>\n",
+        "options": {}
+      },
+      "id": "2615982d-7fee-4fc7-9da4-81338c265b74",
+      "name": "Send Follow-up Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        544,
+        32
+      ],
+      "webhookId": "698791bb-3037-4295-9185-3538fd83c4ae",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oR8CEJE3EHrbt0x4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Is Brochure Request?').item.json.body.company?.ownerEmail }}",
+        "subject": "New Brochure Request - {{ $('Is Brochure Request?').item.json.body.treatment?.name || 'Dental Treatment' }}",
+        "message": "=🦷 <b>New Brochure Request Received</b><br><br>\n\n<b>Customer Details:</b><br>\n• Name: {{ $('Is Brochure Request?').item.json.body.customer?.name || 'Not provided' }}<br>\n• Email: {{ $('Is Brochure Request?').item.json.body.customer?.email || 'Not provided' }}<br>\n• Phone: {{ $('Is Brochure Request?').item.json.body.customer?.phone || 'Not provided' }}<br><br>\n\n<b>Treatment Requested:</b><br>\n• Treatment: {{ $('Is Brochure Request?').item.json.body.treatment?.name || 'Not specified' }}<br>\n• Description: {{ $('Is Brochure Request?').item.json.body.treatment?.description || 'No description provided' }}<br>\n• Brochure URL: {{ $('Is Brochure Request?').item.json.body.treatment?.brochureUrl || 'No URL provided' }}<br>\n• Has Brochure URL: {{ $('Is Brochure Request?').item.json.body.treatment?.hasBrochureUrl ? 'Yes' : 'No' }}<br><br>\n\n<b>Company Info:</b><br>\n• Company: {{ $('Is Brochure Request?').item.json.body.company?.name || 'Not specified' }}<br>\n• Bot ID: {{ $('Is Brochure Request?').item.json.body.botId || 'Not provided' }}<br>\n• Bot Name: {{ $('Is Brochure Request?').item.json.body.botName || 'Not provided' }}<br>\n• Request Time: {{ new Date().toLocaleString() }}<br><br>\n\n<b>Action Required:</b><br>\n{{ $('Is Brochure Request?').item.json.body.treatment?.hasBrochureUrl ? '✅ Brochure email sent automatically to customer' : '⚠️ Please create and send the brochure manually' }}<br><br>\n\n<hr>\n<small>This notification was sent from your Flossy chatbot system.</small>\n",
+        "options": {}
+      },
+      "id": "cd0e8d28-93b5-4d5b-a099-0196dd34a297",
+      "name": "Notify Company Owner",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        544,
+        224
+      ],
+      "webhookId": "275d2dba-183c-4782-ac55-244647f9382c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oR8CEJE3EHrbt0x4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Brochure email sent successfully to {{ $('Is Brochure Request?').item.json.body.customer?.email }}\", \"emailSent\": true, \"timestamp\": new Date().toISOString() } }}",
+        "options": {}
+      },
+      "id": "8756a492-a3a5-4811-a9d4-824db2cda891",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        768,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"message\": \"Invalid request type\", \"timestamp\": new Date().toISOString() } }}",
+        "options": {}
+      },
+      "id": "d31e6612-1189-440e-a4a4-ca414d9898e9",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        320,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7209a6bd-80f3-4ea4-946a-04e4be25981f",
+              "leftValue": "={{ $json.body.treatment?.hasBrochureUrl }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        -96
+      ],
+      "id": "b3ee11e2-2831-4461-942b-1c7d9922123c",
+      "name": "has brochure url?"
+    }
+  ],
+  "connections": {
+    "Gmail Brochure Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Brochure Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Brochure Request?": {
+      "main": [
+        [
+          {
+            "node": "has brochure url?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Brochure Email": {
+      "main": [
+        [
+          {
+            "node": "Notify Company Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Email": {
+      "main": [
+        [
+          {
+            "node": "Notify Company Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Company Owner": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "has brochure url?": {
+      "main": [
+        [
+          {
+            "node": "Send Brochure Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "39f6395296575f516742171bc57b0fc2edfcdcfe0565037b3bf6c1f964e312e0"
+  }
+}

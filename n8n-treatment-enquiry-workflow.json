@@ -1,0 +1,314 @@
+{
+  "name": "Treatment Enquiry Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "treatment-enquiry",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "treatment-enquiry"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "brochure-request",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "brochure_request",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "brochure-request-check",
+      "name": "Brochure Request Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "brochure-no-url",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "brochure_request_no_url",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "brochure-no-url-check",
+      "name": "Brochure No URL Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "ai-question",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "ai_question",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ai-question-check",
+      "name": "AI Question Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 700]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "chatId": "={{ $json.companyOwnerEmail }}",
+        "text": "=🦷 **New Brochure Request**\n\n**Treatment:** {{ $json.treatment.name }}\n**Customer Email:** {{ $json.userEmail }}\n**Company:** {{ $json.companyName }}\n**Bot ID:** {{ $json.botId }}\n\n**Brochure URL:** {{ $json.treatment.brochureUrl }}\n\nPlease send the brochure to the customer's email address.",
+        "additionalFields": {}
+      },
+      "id": "send-brochure-telegram",
+      "name": "Send Brochure to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "chatId": "={{ $json.companyOwnerEmail }}",
+        "text": "=🦷 **Brochure Request - No URL Available**\n\n**Treatment:** {{ $json.treatment.name }}\n**Customer Email:** {{ $json.userEmail }}\n**Company:** {{ $json.companyName }}\n**Bot ID:** {{ $json.botId }}\n\n**Action Required:** Please create and send the {{ $json.treatment.name }} brochure to {{ $json.userEmail }}\n\n**Customer Message:** {{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "notify-owner-telegram",
+      "name": "Notify Owner via Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "chatId": "={{ $json.companyOwnerEmail }}",
+        "text": "=🤖 **AI Question Received**\n\n**Treatment:** {{ $json.treatment.name }}\n**Customer Question:** {{ $json.userMessage }}\n**Company:** {{ $json.companyName }}\n**Bot ID:** {{ $json.botId }}\n**Customer Email:** {{ $json.userEmail || 'Not provided' }}\n\n**AI Response:** Processing customer question about {{ $json.treatment.name }}",
+        "additionalFields": {}
+      },
+      "id": "notify-ai-question",
+      "name": "Notify AI Question",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Brochure request processed successfully\" } }}"
+      },
+      "id": "brochure-response",
+      "name": "Brochure Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Owner notified for brochure creation\" } }}"
+      },
+      "id": "no-url-response",
+      "name": "No URL Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"AI question processed\", \"aiResponse\": \"Based on your question about {{ $json.treatment.name }}, I can provide more detailed information. Would you like me to send you a brochure with comprehensive details, or would you prefer to schedule a consultation with our dentist?\" } }}"
+      },
+      "id": "ai-response",
+      "name": "AI Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"message\": \"Unknown request type\" } }}"
+      },
+      "id": "default-response",
+      "name": "Default Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 800]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Brochure Request Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Brochure No URL Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Question Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brochure Request Check": {
+      "main": [
+        [
+          {
+            "node": "Send Brochure to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Default Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brochure No URL Check": {
+      "main": [
+        [
+          {
+            "node": "Notify Owner via Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Default Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Question Check": {
+      "main": [
+        [
+          {
+            "node": "Notify AI Question",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Default Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Brochure to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Brochure Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Owner via Telegram": {
+      "main": [
+        [
+          {
+            "node": "No URL Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify AI Question": {
+      "main": [
+        [
+          {
+            "node": "AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}

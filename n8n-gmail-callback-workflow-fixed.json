@@ -1,0 +1,187 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmail-callback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4b3c9d4e-4c74-47c4-988e-440d9b64b539",
+      "name": "Gmail Callback Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        112
+      ],
+      "webhookId": "gmail-callback-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "callback-request",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "callback_request",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fc09930a-1bf2-4d89-9925-f1f8a81b4a23",
+      "name": "Is Callback Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Callback Webhook').item.json.body.customer.email }}",
+        "subject": "Callback Confirmation - {{ $('Gmail Callback Webhook').item.json.body.company.name }}",
+        "message": "=<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;\">\n<h2 style=\"color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;\">Callback Confirmation</h2>\n\n<p>Dear <strong>{{ $('Gmail Callback Webhook').item.json.body.customer.name }}</strong>,</p>\n\n<p>Thank you for requesting a callback from <strong>{{ $('Gmail Callback Webhook').item.json.body.company.name }}</strong>!</p>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Your Callback Details:</h3>\n<ul style=\"background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db;\">\n  <li><strong>Name:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.name }}</li>\n  <li><strong>Phone:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.phone }}</li>\n  <li><strong>Reason:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.reason || 'General inquiry' }}</li>\n  <li><strong>Preferred Time:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.preferredTime || 'As soon as possible' }}</li>\n  <li><strong>Request Date:</strong> {{ new Date().toLocaleDateString() }}</li>\n</ul>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">What happens next:</h3>\n<ol style=\"background-color: #f8f9fa; padding: 15px; border-radius: 5px;\">\n  <li>Our team will review your callback request</li>\n  <li>We'll call you at your preferred time: <strong>{{ $('Gmail Callback Webhook').item.json.body.callback.preferredTime || 'As soon as possible' }}</strong></li>\n  <li>We'll discuss your specific needs: <strong>{{ $('Gmail Callback Webhook').item.json.body.callback.reason || 'General inquiry' }}</strong></li>\n  <li>We'll answer any questions you may have</li>\n</ol>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Contact Information:</h3>\n<div style=\"background-color: #e8f4fd; padding: 15px; border-radius: 5px; border: 1px solid #bee5eb;\">\n  <p>📞 <strong>Phone:</strong> {{ $('Gmail Callback Webhook').item.json.body.company.phone || 'Contact us for details' }}</p>\n  <p>📧 <strong>Email:</strong> {{ $('Gmail Callback Webhook').item.json.body.company.ownerEmail }}</p>\n  <p>🌐 <strong>Website:</strong> {{ $('Gmail Callback Webhook').item.json.body.company.website || 'Visit our website for more information' }}</p>\n</div>\n\n<p style=\"margin-top: 25px;\"><strong>If you need to reschedule or have questions:</strong><br>\nPlease call us at {{ $('Gmail Callback Webhook').item.json.body.company.phone || 'our main number' }} or reply to this email.</p>\n\n<p>We look forward to speaking with you soon!</p>\n\n<p>Best regards,<br>\nThe {{ $('Gmail Callback Webhook').item.json.body.company.name }} Team</p>\n\n<hr style=\"margin: 30px 0; border: none; border-top: 1px solid #ddd;\">\n<p style=\"font-size: 12px; color: #666; font-style: italic;\">This confirmation was sent via our automated system. If you have any questions, please don't hesitate to contact us directly.</p>\n</body></html>",
+        "options": {}
+      },
+      "id": "a412e4b1-242c-41ab-ae78-ff5560e84cf7",
+      "name": "Send Customer Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "29a8ab9d-555b-4037-92bd-356fc7ef37d4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oR8CEJE3EHrbt0x4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Callback Webhook').item.json.body.company.ownerEmail }}",
+        "subject": "🔄 New Callback Request - {{ $('Gmail Callback Webhook').item.json.body.customer.name }}",
+        "message": "=<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;\">\n<h2 style=\"color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;\">🔄 New Callback Request Received</h2>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Customer Information:</h3>\n<div style=\"background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db;\">\n  <p><strong>Name:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.name }}</p>\n  <p><strong>Email:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.email }}</p>\n  <p><strong>Phone:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.phone }}</p>\n  <p><strong>Request Time:</strong> {{ new Date().toLocaleString() }}</p>\n</div>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Callback Details:</h3>\n<div style=\"background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107;\">\n  <p><strong>Reason:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.reason || 'General inquiry' }}</p>\n  <p><strong>Preferred Time:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.preferredTime || 'As soon as possible' }}</p>\n  <p><strong>Urgency:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.urgency || 'Normal' }}</p>\n</div>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Company Information:</h3>\n<div style=\"background-color: #d1ecf1; padding: 15px; border-radius: 5px; border-left: 4px solid #17a2b8;\">\n  <p><strong>Company:</strong> {{ $('Gmail Callback Webhook').item.json.body.company.name }}</p>\n  <p><strong>Bot ID:</strong> {{ $('Gmail Callback Webhook').item.json.body.botId }}</p>\n  <p><strong>Source:</strong> Flossy Chatbot</p>\n</div>\n\n<h3 style=\"color: #e74c3c; margin-top: 25px;\">Action Required:</h3>\n<div style=\"background-color: #f8d7da; padding: 15px; border-radius: 5px; border-left: 4px solid #dc3545;\">\n  <p>📞 <strong>Call the customer at:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.phone }}</p>\n  <p>⏰ <strong>Preferred time:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.preferredTime || 'As soon as possible' }}</p>\n  <p>💬 <strong>Reason for call:</strong> {{ $('Gmail Callback Webhook').item.json.body.callback.reason || 'General inquiry' }}</p>\n</div>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Customer's Message:</h3>\n<div style=\"background-color: #e2e3e5; padding: 15px; border-radius: 5px; font-style: italic;\">\n  <p>{{ $('Gmail Callback Webhook').item.json.body.callback.message || 'No additional message provided' }}</p>\n</div>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Next Steps:</h3>\n<ol style=\"background-color: #f8f9fa; padding: 15px; border-radius: 5px;\">\n  <li>Call the customer at their preferred time</li>\n  <li>Address their specific needs: {{ $('Gmail Callback Webhook').item.json.body.callback.reason || 'General inquiry' }}</li>\n  <li>Answer any questions they may have</li>\n  <li>Schedule follow-up if needed</li>\n</ol>\n\n<h3 style=\"color: #2c3e50; margin-top: 25px;\">Contact Information:</h3>\n<div style=\"background-color: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;\">\n  <p><strong>Customer Phone:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.phone }}</p>\n  <p><strong>Customer Email:</strong> {{ $('Gmail Callback Webhook').item.json.body.customer.email }}</p>\n  <p><strong>Your Company:</strong> {{ $('Gmail Callback Webhook').item.json.body.company.name }}</p>\n</div>\n\n<hr style=\"margin: 30px 0; border: none; border-top: 1px solid #ddd;\">\n<p style=\"font-size: 12px; color: #666; font-style: italic;\">This callback request was generated from your Flossy chatbot. Please call the customer as soon as possible.</p>\n</body></html>",
+        "options": {}
+      },
+      "id": "edc6cf43-fd84-4e61-9d23-923261c7b82f",
+      "name": "Notify Company - Callback",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        0,
+        208
+      ],
+      "webhookId": "23028252-0296-4b5f-b4ce-fc771ab2dd5d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oR8CEJE3EHrbt0x4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Callback request processed successfully. Confirmation sent to {{ $('Gmail Callback Webhook').item.json.body.customer.email }}, notification sent to {{ $('Gmail Callback Webhook').item.json.body.company.ownerEmail }}\", \"callbackScheduled\": true, \"timestamp\": new Date().toISOString() } }}",
+        "options": {}
+      },
+      "id": "3cec4998-c4b1-44ad-9b8e-5af45f06de0a",
+      "name": "Callback Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"message\": \"Invalid callback request type\", \"timestamp\": new Date().toISOString() } }}",
+        "options": {}
+      },
+      "id": "99e74c61-dec1-43a2-8dd0-9a8ed20107d5",
+      "name": "Callback Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Gmail Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Callback Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Callback Request?": {
+      "main": [
+        [
+          {
+            "node": "Send Customer Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Callback Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Customer Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Notify Company - Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Company - Callback": {
+      "main": [
+        [
+          {
+            "node": "Callback Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "39f6395296575f516742171bc57b0fc2edfcdcfe0565037b3bf6c1f964e312e0"
+  }
+}

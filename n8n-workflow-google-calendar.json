@@ -1,0 +1,252 @@
+{
+  "name": "Flossy Google Calendar Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "appointment-booking",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Appointment Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "flossy-appointment-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "appointment",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-appointment-type",
+      "name": "Check if Appointment",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/calendar/status/{{ $json.botId }}",
+        "options": {}
+      },
+      "id": "check-calendar-status",
+      "name": "Check Calendar Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.connected }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-calendar-connected",
+      "name": "Calendar Connected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/calendar/create-event/{{ $json.botId }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "customerName",
+              "value": "={{ $('Appointment Webhook').item.json.formData.fullName }}"
+            },
+            {
+              "name": "customerEmail", 
+              "value": "={{ $('Appointment Webhook').item.json.formData.contact }}"
+            },
+            {
+              "name": "customerPhone",
+              "value": "={{ $('Appointment Webhook').item.json.formData.phone || '' }}"
+            },
+            {
+              "name": "appointmentDate",
+              "value": "={{ $('Appointment Webhook').item.json.formData.preferredDate }}"
+            },
+            {
+              "name": "appointmentTime",
+              "value": "={{ $('Appointment Webhook').item.json.formData.preferredTime }}"
+            },
+            {
+              "name": "duration",
+              "value": 60
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-calendar-event",
+      "name": "Create Calendar Event",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": \"Appointment booked successfully!\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"calendarEvent\": $json,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"message\": \"Google Calendar not connected for this bot\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"error\": \"Please connect Google Calendar in bot settings\",\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "calendar-not-connected-response",
+      "name": "Calendar Not Connected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"message\": \"Invalid appointment request\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"error\": \"Missing required appointment data\",\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "invalid-request-response",
+      "name": "Invalid Request",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": \"Request received (not an appointment)\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "non-appointment-response",
+      "name": "Non-Appointment Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 500]
+    }
+  ],
+  "connections": {
+    "Appointment Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check if Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Appointment": {
+      "main": [
+        [
+          {
+            "node": "Check Calendar Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Non-Appointment Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Calendar Status": {
+      "main": [
+        [
+          {
+            "node": "Calendar Connected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Connected?": {
+      "main": [
+        [
+          {
+            "node": "Create Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Calendar Not Connected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendar Event": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}

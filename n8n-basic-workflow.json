@@ -1,0 +1,99 @@
+{
+  "name": "Flossy Appointment Basic Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "appointment-booking",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Appointment Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "flossy-appointment-webhook"
+    },
+    {
+      "parameters": {
+        "url": "http://213.165.249.205:3001/webhook/appointment-booking",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "botId",
+              "value": "={{ $json.botId }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $json.type }}"
+            },
+            {
+              "name": "formData",
+              "value": "={{ $json.formData }}"
+            },
+            {
+              "name": "userTimezone",
+              "value": "={{ $json.userTimezone }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-to-server",
+      "name": "Send to Server",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "return-response",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Appointment Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send to Server",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Server": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}

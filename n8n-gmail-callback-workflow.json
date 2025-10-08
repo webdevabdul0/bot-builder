@@ -1,0 +1,167 @@
+{
+  "name": "Flossy Gmail Callback Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmail-callback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Gmail Callback Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "gmail-callback-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "callback-request",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "callback_request",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-callback-request",
+      "name": "Is Callback Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "to": "={{ $json.body.customerEmail }}",
+        "subject": "Callback Confirmation - {{ $json.body.companyName }}",
+        "message": "=Dear {{ $json.body.customerName }},\n\nThank you for requesting a callback from {{ $json.body.companyName }}!\n\n**Your Callback Details:**\n• **Name:** {{ $json.body.customerName }}\n• **Phone:** {{ $json.body.customerPhone }}\n• **Reason:** {{ $json.body.callbackReason }}\n• **Preferred Time:** {{ $json.body.preferredTime }}\n• **Request Date:** {{ new Date().toLocaleDateString() }}\n\n**What happens next:**\n1. Our team will review your callback request\n2. We'll call you at your preferred time: **{{ $json.body.preferredTime }}**\n3. We'll discuss your specific needs: **{{ $json.body.callbackReason }}**\n4. We'll answer any questions you may have\n\n**Contact Information:**\n📞 Phone: {{ $json.body.companyPhone || 'Contact us for details' }}\n📧 Email: {{ $json.body.companyOwnerEmail }}\n🌐 Website: {{ $json.body.companyWebsite || 'Visit our website for more information' }}\n\n**If you need to reschedule or have questions:**\nPlease call us at {{ $json.body.companyPhone || 'our main number' }} or reply to this email.\n\nWe look forward to speaking with you soon!\n\nBest regards,\nThe {{ $json.body.companyName }} Team\n\n---\n*This confirmation was sent via our automated system. If you have any questions, please don't hesitate to contact us directly.*",
+        "additionalFields": {
+          "fromName": "={{ $json.body.companyName }}"
+        }
+      },
+      "id": "send-customer-confirmation",
+      "name": "Send Customer Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "to": "={{ $json.body.companyOwnerEmail }}",
+        "subject": "🔄 New Callback Request - {{ $json.body.customerName }}",
+        "message": "=🔄 **New Callback Request Received**\n\n**Customer Information:**\n• **Name:** {{ $json.body.customerName }}\n• **Email:** {{ $json.body.customerEmail }}\n• **Phone:** {{ $json.body.customerPhone }}\n• **Request Time:** {{ new Date().toLocaleString() }}\n\n**Callback Details:**\n• **Reason:** {{ $json.body.callbackReason }}\n• **Preferred Time:** {{ $json.body.preferredTime }}\n• **Urgency:** {{ $json.body.urgency || 'Normal' }}\n\n**Company Information:**\n• **Company:** {{ $json.body.companyName }}\n• **Bot ID:** {{ $json.body.botId }}\n• **Source:** Flossy Chatbot\n\n**Action Required:**\n📞 **Call the customer at:** {{ $json.body.customerPhone }}\n⏰ **Preferred time:** {{ $json.body.preferredTime }}\n💬 **Reason for call:** {{ $json.body.callbackReason }}\n\n**Customer's Message:**\n{{ $json.body.customerMessage || 'No additional message provided' }}\n\n**Next Steps:**\n1. Call the customer at their preferred time\n2. Address their specific needs: {{ $json.body.callbackReason }}\n3. Answer any questions they may have\n4. Schedule follow-up if needed\n\n**Contact Information:**\n• Customer Phone: {{ $json.body.customerPhone }}\n• Customer Email: {{ $json.body.customerEmail }}\n• Your Company: {{ $json.body.companyName }}\n\n---\n*This callback request was generated from your Flossy chatbot. Please call the customer as soon as possible.*",
+        "additionalFields": {}
+      },
+      "id": "notify-company-callback",
+      "name": "Notify Company - Callback",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Callback request processed successfully. Confirmation sent to {{ $json.body.customerEmail }}, notification sent to {{ $json.body.companyOwnerEmail }}\", \"callbackScheduled\": true, \"timestamp\": new Date().toISOString() } }}"
+      },
+      "id": "callback-success-response",
+      "name": "Callback Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"message\": \"Invalid callback request type\", \"timestamp\": new Date().toISOString() } }}"
+      },
+      "id": "callback-error-response",
+      "name": "Callback Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 600]
+    }
+  ],
+  "connections": {
+    "Gmail Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Callback Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Callback Request?": {
+      "main": [
+        [
+          {
+            "node": "Send Customer Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Callback Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Customer Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Notify Company - Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Company - Callback": {
+      "main": [
+        [
+          {
+            "node": "Callback Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}
+

@@ -1,0 +1,525 @@
+{
+  "name": "Flossy Smart Appointment AI Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "appointment-booking",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Appointment Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "flossy-appointment-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "appointment_booking",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-appointment-type",
+      "name": "Is Appointment Booking?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.formData }}",
+              "rightValue": null,
+              "operator": {
+                "type": "object",
+                "operation": "notEqual"
+              }
+            },
+            {
+              "id": "condition-2",
+              "leftValue": "={{ $json.formData.fullName }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-complete-form",
+      "name": "Complete Form Data?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://213.165.249.205:3001/webhook/appointment-booking",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "botId",
+              "value": "={{ $json.botId }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $json.type }}"
+            },
+            {
+              "name": "formData",
+              "value": "={{ $json.formData }}"
+            },
+            {
+              "name": "userTimezone",
+              "value": "={{ $json.userTimezone }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-to-server",
+      "name": "Send to Server",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-server-success",
+      "name": "Server Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.conflict }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-conflict",
+      "name": "Time Conflict?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a helpful appointment booking assistant. Generate a friendly, professional response for successful appointment bookings. Include the appointment details and next steps."
+            },
+            {
+              "role": "user",
+              "content": "Generate a response for successful appointment booking with these details:\n- Customer: {{ $('Appointment Webhook').item.json.formData.fullName }}\n- Date: {{ $('Appointment Webhook').item.json.formData.preferredDate }}\n- Time: {{ $('Appointment Webhook').item.json.formData.preferredTime }}\n- Message: {{ $json.message }}\n- Appointment ID: {{ $json.appointmentId }}\n\nMake it warm, professional, and include confirmation details."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 200
+        }
+      },
+      "id": "ai-success-response",
+      "name": "AI Success Response",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1560, 50]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a helpful appointment booking assistant. The requested time slot is not available. Generate a friendly response that acknowledges the conflict and presents the available alternatives in an engaging way. Make suggestions feel natural and helpful."
+            },
+            {
+              "role": "user",
+              "content": "Generate a response for time conflict with these details:\n- Customer: {{ $('Appointment Webhook').item.json.formData.fullName }}\n- Requested Date: {{ $('Appointment Webhook').item.json.formData.preferredDate }}\n- Requested Time: {{ $('Appointment Webhook').item.json.formData.preferredTime }}\n- Available Suggestions: {{ $json.suggestions.map(s => s.displayTime + ' (' + s.message + ')').join(', ') }}\n- Available Slots: {{ $json.availableSlots.map(s => s.displayTime).join(', ') }}\n\nMake it empathetic and helpful, presenting alternatives in a positive way."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 300
+        }
+      },
+      "id": "ai-conflict-response",
+      "name": "AI Conflict Response",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1560, 250]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a helpful appointment booking assistant. The user has sent a natural language message about appointment booking. Extract the structured data needed for booking. If information is missing, ask for it politely. If the user mentions time preferences like 'evening', 'morning', 'afternoon', convert them to specific times."
+            },
+            {
+              "role": "user",
+              "content": "Extract appointment booking data from this message:\n- Bot ID: {{ $json.botId }}\n- User Message: {{ $json.message || $json.userMessage }}\n- Current Form Data: {{ $json.formData || '{}' }}\n\nReturn a JSON object with: fullName, contact, phone, preferredDate, preferredTime, and any other relevant details. If time is vague (like 'evening'), suggest specific times. If information is missing, set to null."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 200
+        }
+      },
+      "id": "ai-extract-data",
+      "name": "AI Extract Data",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.fullName }}",
+              "rightValue": null,
+              "operator": {
+                "type": "string",
+                "operation": "notEqual"
+              }
+            },
+            {
+              "id": "condition-2",
+              "leftValue": "={{ $json.contact }}",
+              "rightValue": null,
+              "operator": {
+                "type": "string",
+                "operation": "notEqual"
+              }
+            },
+            {
+              "id": "condition-3",
+              "leftValue": "={{ $json.preferredDate }}",
+              "rightValue": null,
+              "operator": {
+                "type": "string",
+                "operation": "notEqual"
+              }
+            },
+            {
+              "id": "condition-4",
+              "leftValue": "={{ $json.preferredTime }}",
+              "rightValue": null,
+              "operator": {
+                "type": "string",
+                "operation": "notEqual"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-extracted-data",
+      "name": "Complete Extracted Data?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": $json.choices[0].message.content,\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 50]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"conflict\": true,\n  \"message\": $json.choices[0].message.content,\n  \"suggestions\": $('Send to Server').item.json.suggestions,\n  \"availableSlots\": $('Send to Server').item.json.availableSlots,\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "conflict-response",
+      "name": "Conflict Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 250]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"message\": \"I need more information to book your appointment. Please provide your full name, email, phone number, preferred date, and preferred time.\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "incomplete-data-response",
+      "name": "Incomplete Data Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"message\": \"I need more information to book your appointment. Please provide your full name, email, phone number, preferred date, and preferred time.\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "missing-data-response",
+      "name": "Missing Data Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": \"Thanks for your message! I can help you book an appointment. Please use the appointment booking form or tell me your preferred date and time.\",\n  \"botId\": $('Appointment Webhook').item.json.botId,\n  \"timestamp\": new Date().toISOString()\n} }}"
+      },
+      "id": "non-appointment-response",
+      "name": "Non-Appointment Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 500]
+    }
+  ],
+  "connections": {
+    "Appointment Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Appointment Booking?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Appointment Booking?": {
+      "main": [
+        [
+          {
+            "node": "Complete Form Data?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Non-Appointment Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Form Data?": {
+      "main": [
+        [
+          {
+            "node": "Send to Server",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Server": {
+      "main": [
+        [
+          {
+            "node": "Server Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Server Success?": {
+      "main": [
+        [
+          {
+            "node": "Time Conflict?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Time Conflict?": {
+      "main": [
+        [
+          {
+            "node": "AI Conflict Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Success Response": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Conflict Response": {
+      "main": [
+        [
+          {
+            "node": "Conflict Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Complete Extracted Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Extracted Data?": {
+      "main": [
+        [
+          {
+            "node": "Send to Server",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Incomplete Data Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}
