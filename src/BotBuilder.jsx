@@ -189,7 +189,7 @@ const BotBuilder = () => {
     
     try {
       console.log('Checking calendar status for botId:', botId);
-      const response = await fetch(`https://https://widget.flipthatpdf.site/api/calendar/status/${botId}`);
+      const response = await fetch(`https://widget.flipthatpdf.site/api/calendar/status/${botId}`);
       const status = await response.json();
       console.log('Calendar status response:', status);
       setCalendarStatus(status);
