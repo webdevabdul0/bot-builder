@@ -189,7 +189,7 @@ const BotBuilder = () => {
     
     try {
       console.log('Checking calendar status for botId:', botId);
-      const response = await fetch(`https://slightly-trains-snap-viewpicture.trycloudflare.com/api/calendar/status/${botId}`);
+      const response = await fetch(`https://https://widget.flipthatpdf.site/api/calendar/status/${botId}`);
       const status = await response.json();
       console.log('Calendar status response:', status);
       setCalendarStatus(status);
@@ -210,7 +210,7 @@ const BotBuilder = () => {
     
     try {
       console.log('Attempting to connect Google Calendar for botId:', botId);
-      const response = await fetch(`https://slightly-trains-snap-viewpicture.trycloudflare.com/oauth2/authorize/${botId}`);
+      const response = await fetch(`https://https://widget.flipthatpdf.site/oauth2/authorize/${botId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -292,7 +292,7 @@ const BotBuilder = () => {
       
     } catch (error) {
       console.error('Error connecting to Google Calendar:', error);
-      alert(`Failed to connect to Google Calendar: ${error.message}. Please check if the server is running on https://slightly-trains-snap-viewpicture.trycloudflare.com`);
+      alert(`Failed to connect to Google Calendar: ${error.message}. Please check if the server is running on https://https://widget.flipthatpdf.site`);
       setIsConnecting(false);
     }
   };
@@ -302,7 +302,7 @@ const BotBuilder = () => {
     
     if (window.confirm('Are you sure you want to disconnect Google Calendar? This will stop automatic appointment creation.')) {
       try {
-        const response = await fetch(`https://slightly-trains-snap-viewpicture.trycloudflare.com/api/calendar/disconnect/${botId}`, {
+        const response = await fetch(`https://https://widget.flipthatpdf.site/api/calendar/disconnect/${botId}`, {
           method: 'DELETE'
         });
         
