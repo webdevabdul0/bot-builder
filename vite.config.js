@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     host: true, // allow external access (not just localhost)
     port: 5173, // your app port
-    allowedHosts: ['builder.flossly.ai', 'n8n.flossly.ai'], // ✅ allow your domains
+    allowedHosts: ['builder.flossly.ai', 'n8n.flossly.ai', 'n8n.flipthatpdf.site'], // ✅ allow your domains
   },
 })
