@@ -23,7 +23,7 @@ const testData = {
 const postData = JSON.stringify(testData);
 
 const options = {
-  hostname: 'n8n.flipthatpdf.site',
+  hostname: 'n8n.flossly.ai',
   port: 443,
   path: '/webhook-test/gmail-brochure',
   method: 'POST',

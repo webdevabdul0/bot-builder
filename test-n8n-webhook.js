@@ -5,7 +5,7 @@
 
 const axios = require('axios');
 
-const N8N_WEBHOOK_URL = 'https://n8n.flipthatpdf.site/webhook/appointment-booking';
+const N8N_WEBHOOK_URL = 'https://n8n.flossly.ai/webhook/appointment-booking';
 const TEST_BOT_ID = '8501e93b-21f5-4b7b-8b3e-a8efc823014d'; // Use your actual bot ID
 
 async function testN8nWebhook() {
@@ -63,13 +63,13 @@ async function testN8nWebhook() {
       console.log('   Error:', error.response.data);
     } else if (error.code === 'ECONNREFUSED') {
       console.log('   Error: Cannot connect to n8n');
-      console.log('   Make sure n8n is running on https://n8n.flipthatpdf.site/');
+      console.log('   Make sure n8n is running on https://n8n.flossly.ai/');
     } else {
       console.log('   Error:', error.message);
     }
     
     console.log('\n🔧 Troubleshooting:');
-    console.log('   1. Make sure n8n is running: https://n8n.flipthatpdf.site/');
+    console.log('   1. Make sure n8n is running: https://n8n.flossly.ai/');
     console.log('   2. Check if the webhook URL is correct');
     console.log('   3. Verify the workflow is active in n8n');
     console.log('   4. Check n8n execution logs for errors');

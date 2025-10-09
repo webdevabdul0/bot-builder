@@ -2,13 +2,13 @@
 
 ## ✅ **Test Results Summary**
 
-### **Gmail Brochure Webhook** - `https://n8n.flipthatpdf.site/webhook/gmail-brochure`
+### **Gmail Brochure Webhook** - `https://n8n.flossly.ai/webhook/gmail-brochure`
 - **Status**: ✅ **200 OK** - Webhook is active and responding
 - **Response Time**: ~1.5-1.7 seconds
 - **Payload Structure**: ✅ Complete and properly formatted
 - **Bot-Specific Data**: ✅ Working correctly
 
-### **Gmail Callback Webhook** - `https://n8n.flipthatpdf.site/webhook/gmail-callback`
+### **Gmail Callback Webhook** - `https://n8n.flossly.ai/webhook/gmail-callback`
 - **Status**: ⚠️ **404 Not Found** - Webhook not registered yet
 - **Response Time**: ~0.5 seconds
 - **Payload Structure**: ✅ Complete and properly formatted
@@ -141,14 +141,14 @@
 
 ### **Brochure Webhook Test:**
 ```bash
-curl -X POST https://n8n.flipthatpdf.site/webhook/gmail-brochure \
+curl -X POST https://n8n.flossly.ai/webhook/gmail-brochure \
   -H "Content-Type: application/json" \
   -d '{...complete payload...}'
 ```
 
 ### **Callback Webhook Test:**
 ```bash
-curl -X POST https://n8n.flipthatpdf.site/webhook/gmail-callback \
+curl -X POST https://n8n.flossly.ai/webhook/gmail-callback \
   -H "Content-Type: application/json" \
   -d '{...complete payload...}'
 ```

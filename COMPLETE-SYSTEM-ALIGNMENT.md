@@ -63,8 +63,8 @@
 - `POST /webhook/gmail-callback` - Callback requests
 
 ### **n8n Endpoints:**
-- `POST https://n8n.flipthatpdf.site/webhook/gmail-brochure` - Gmail brochure workflow
-- `POST https://n8n.flipthatpdf.site/webhook/gmail-callback` - Gmail callback workflow
+- `POST https://n8n.flossly.ai/webhook/gmail-brochure` - Gmail brochure workflow
+- `POST https://n8n.flossly.ai/webhook/gmail-callback` - Gmail callback workflow
 
 ## 🔧 **Configuration Structure**
 

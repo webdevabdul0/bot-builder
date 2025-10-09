@@ -157,7 +157,7 @@ function testWebhook(data, webhookUrl, testName) {
   const postData = JSON.stringify(data);
   
   const options = {
-    hostname: 'n8n.flipthatpdf.site',
+    hostname: 'n8n.flossly.ai',
     port: 443,
     path: webhookUrl,
     method: 'POST',
@@ -171,7 +171,7 @@ function testWebhook(data, webhookUrl, testName) {
   console.log('📤 Bot ID:', data.botId);
   console.log('📤 Company:', data.company.name);
   console.log('📤 Customer:', data.customer.email);
-  console.log('🌐 URL: https://n8n.flipthatpdf.site' + webhookUrl);
+  console.log('🌐 URL: https://n8n.flossly.ai' + webhookUrl);
   console.log('⏳ Making request...\n');
 
   const req = https.request(options, (res) => {

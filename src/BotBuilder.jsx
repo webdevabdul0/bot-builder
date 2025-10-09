@@ -189,7 +189,7 @@ const BotBuilder = () => {
     
     try {
       console.log('Checking calendar status for botId:', botId);
-      const response = await fetch(`https://widget.flipthatpdf.site/api/calendar/status/${botId}`);
+      const response = await fetch(`https://widget.flossly.ai/api/calendar/status/${botId}`);
       const status = await response.json();
       console.log('Calendar status response:', status);
       setCalendarStatus(status);
@@ -210,7 +210,7 @@ const BotBuilder = () => {
     
     try {
       console.log('Attempting to connect Google Calendar for botId:', botId);
-      const response = await fetch(`https://widget.flipthatpdf.site/oauth2/authorize/${botId}`);
+      const response = await fetch(`https://widget.flossly.ai/oauth2/authorize/${botId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -292,7 +292,7 @@ const BotBuilder = () => {
       
     } catch (error) {
       console.error('Error connecting to Google Calendar:', error);
-      alert(`Failed to connect to Google Calendar: ${error.message}. Please check if the server is running on https://widget.flipthatpdf.site`);
+      alert(`Failed to connect to Google Calendar: ${error.message}. Please check if the server is running on https://widget.flossly.ai`);
       setIsConnecting(false);
     }
   };
@@ -302,7 +302,7 @@ const BotBuilder = () => {
     
     if (window.confirm('Are you sure you want to disconnect Google Calendar? This will stop automatic appointment creation.')) {
       try {
-        const response = await fetch(`https://widget.flipthatpdf.site/api/calendar/disconnect/${botId}`, {
+        const response = await fetch(`https://widget.flossly.ai/api/calendar/disconnect/${botId}`, {
           method: 'DELETE'
         });
         
@@ -354,9 +354,9 @@ const BotBuilder = () => {
       companyOwnerEmail: companyOwnerEmail,
       companyPhone: companyPhone,
       companyWebsite: companyWebsite,
-      webhookUrl: 'https://n8n.flipthatpdf.site/webhook/appointment-booking', // n8n webhook for Google Calendar integration
-      gmailBrochureUrl: 'https://n8n.flipthatpdf.site/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
-      gmailCallbackUrl: 'https://n8n.flipthatpdf.site/webhook/gmail-callback', // n8n webhook for Gmail callback requests
+      webhookUrl: 'https://n8n.flossly.ai/webhook/appointment-booking', // n8n webhook for Google Calendar integration
+      gmailBrochureUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
+      gmailCallbackUrl: 'https://n8n.flossly.ai/webhook/gmail-callback', // n8n webhook for Gmail callback requests
       themeColor: themeColor,
       position: position,
       sideSpacing: sideSpacing,
@@ -374,7 +374,7 @@ const BotBuilder = () => {
       },
       treatmentFlow: {
         options: treatmentOptions.filter(opt => opt.name.trim()),
-        webhookUrl: 'https://n8n.flipthatpdf.site/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
+        webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
       },
       callbackFlow: {
         fields: [
@@ -392,7 +392,7 @@ const BotBuilder = () => {
     var js,fjs=d.getElementsByTagName(s)[0];
     if(d.getElementById(id))return;
     js=d.createElement(s);js.id=id;
-    js.src="https://widget.flipthatpdf.site";
+    js.src="https://widget.flossly.ai";
     fjs.parentNode.insertBefore(js,fjs);
   }(document,"script","flossy-widget"));
 </script>`;
@@ -423,9 +423,9 @@ const BotBuilder = () => {
       companyOwnerEmail: companyOwnerEmail,
       companyPhone: companyPhone,
       companyWebsite: companyWebsite,
-      webhookUrl: 'https://n8n.flipthatpdf.site/webhook/appointment-booking', // n8n webhook for Google Calendar integration
-      gmailBrochureUrl: 'https://n8n.flipthatpdf.site/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
-      gmailCallbackUrl: 'https://n8n.flipthatpdf.site/webhook/gmail-callback', // n8n webhook for Gmail callback requests
+      webhookUrl: 'https://n8n.flossly.ai/webhook/appointment-booking', // n8n webhook for Google Calendar integration
+      gmailBrochureUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
+      gmailCallbackUrl: 'https://n8n.flossly.ai/webhook/gmail-callback', // n8n webhook for Gmail callback requests
       themeColor: themeColor,
       position: position,
       sideSpacing: sideSpacing,
@@ -443,7 +443,7 @@ const BotBuilder = () => {
       },
       treatmentFlow: {
         options: treatmentOptions.filter(opt => opt.name.trim()),
-        webhookUrl: 'https://n8n.flipthatpdf.site/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
+        webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
       },
       callbackFlow: {
         fields: [
@@ -461,7 +461,7 @@ const BotBuilder = () => {
     var js,fjs=d.getElementsByTagName(s)[0];
     if(d.getElementById(id))return;
     js=d.createElement(s);js.id=id;
-    js.src="https://widget.flipthatpdf.site/widget.js";
+    js.src="https://widget.flossly.ai/widget.js";
     fjs.parentNode.insertBefore(js,fjs);
   }(document,"script","flossy-widget"));
 </script>`;
@@ -734,7 +734,7 @@ const BotBuilder = () => {
         // Send treatment enquiry to n8n (only in production, not test mode)
         if (!testMode) {
           try {
-            const response = await fetch('https://n8n.flipthatpdf.site/webhook/treatment-enquiry', {
+            const response = await fetch('https://n8n.flossly.ai/webhook/treatment-enquiry', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1023,7 +1023,7 @@ const BotBuilder = () => {
       // General questions - keep in treatment chat
       if (!testMode) {
         try {
-          const response = await fetch('https://n8n.flipthatpdf.site/webhook/ai-agent', {
+          const response = await fetch('https://n8n.flossly.ai/webhook/ai-agent', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1097,7 +1097,7 @@ const BotBuilder = () => {
       // Send callback request to Gmail webhook (only in production, not test mode)
       if (!testMode) {
         try {
-          const response = await fetch('https://n8n.flipthatpdf.site/webhook/gmail-callback', {
+          const response = await fetch('https://n8n.flossly.ai/webhook/gmail-callback', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

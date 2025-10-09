@@ -46,7 +46,7 @@ function testWebhook(data, testName) {
   const postData = JSON.stringify(data);
   
   const options = {
-    hostname: 'n8n.flipthatpdf.site',
+    hostname: 'n8n.flossly.ai',
     port: 443,
     path: '/webhook-test/gmail-brochure',
     method: 'POST',
@@ -58,7 +58,7 @@ function testWebhook(data, testName) {
 
   console.log(`\n🧪 Testing: ${testName}`);
   console.log('📤 Sending data:', JSON.stringify(data, null, 2));
-  console.log('🌐 URL: https://n8n.flipthatpdf.site/webhook-test/gmail-brochure');
+  console.log('🌐 URL: https://n8n.flossly.ai/webhook-test/gmail-brochure');
   console.log('⏳ Making request...\n');
 
   const req = https.request(options, (res) => {

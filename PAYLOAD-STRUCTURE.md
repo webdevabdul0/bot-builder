@@ -16,7 +16,7 @@ Every payload includes these core identification fields:
 
 ## 📧 **Brochure Request Payload**
 
-### **Webhook URL:** `https://n8n.flipthatpdf.site/webhook/gmail-brochure`
+### **Webhook URL:** `https://n8n.flossly.ai/webhook/gmail-brochure`
 
 ### **Complete Payload Structure:**
 
@@ -73,7 +73,7 @@ Every payload includes these core identification fields:
 
 ## 📞 **Callback Request Payload**
 
-### **Webhook URL:** `https://n8n.flipthatpdf.site/webhook/gmail-callback`
+### **Webhook URL:** `https://n8n.flossly.ai/webhook/gmail-callback`
 
 ### **Complete Payload Structure:**
 
@@ -217,7 +217,7 @@ Every payload includes these core identification fields:
 
 ### **Test Brochure Request:**
 ```bash
-curl -X POST https://n8n.flipthatpdf.site/webhook/gmail-brochure \
+curl -X POST https://n8n.flossly.ai/webhook/gmail-brochure \
   -H "Content-Type: application/json" \
   -d '{
     "botId": "test-bot-123",
@@ -251,7 +251,7 @@ curl -X POST https://n8n.flipthatpdf.site/webhook/gmail-brochure \
 
 ### **Test Callback Request:**
 ```bash
-curl -X POST https://n8n.flipthatpdf.site/webhook/gmail-callback \
+curl -X POST https://n8n.flossly.ai/webhook/gmail-callback \
   -H "Content-Type: application/json" \
   -d '{
     "botId": "test-bot-456",
