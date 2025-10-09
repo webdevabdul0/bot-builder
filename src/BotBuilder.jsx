@@ -210,7 +210,7 @@ const BotBuilder = () => {
     
     try {
       console.log('Attempting to connect Google Calendar for botId:', botId);
-      const response = await fetch(`https://widget.flipthatpdf.site/widget.js/oauth2/authorize/${botId}`);
+      const response = await fetch(`https://widget.flipthatpdf.site/oauth2/authorize/${botId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -292,7 +292,7 @@ const BotBuilder = () => {
       
     } catch (error) {
       console.error('Error connecting to Google Calendar:', error);
-      alert(`Failed to connect to Google Calendar: ${error.message}. Please check if the server is running on https://widget.flipthatpdf.site/widget.js`);
+      alert(`Failed to connect to Google Calendar: ${error.message}. Please check if the server is running on https://widget.flipthatpdf.site`);
       setIsConnecting(false);
     }
   };
@@ -302,7 +302,7 @@ const BotBuilder = () => {
     
     if (window.confirm('Are you sure you want to disconnect Google Calendar? This will stop automatic appointment creation.')) {
       try {
-        const response = await fetch(`https://widget.flipthatpdf.site/widget.js/api/calendar/disconnect/${botId}`, {
+        const response = await fetch(`https://widget.flipthatpdf.site/api/calendar/disconnect/${botId}`, {
           method: 'DELETE'
         });
         
@@ -392,7 +392,7 @@ const BotBuilder = () => {
     var js,fjs=d.getElementsByTagName(s)[0];
     if(d.getElementById(id))return;
     js=d.createElement(s);js.id=id;
-    js.src="https://widget.flipthatpdf.site/widget.js";
+    js.src="https://widget.flipthatpdf.site";
     fjs.parentNode.insertBefore(js,fjs);
   }(document,"script","flossy-widget"));
 </script>`;
