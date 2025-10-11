@@ -392,7 +392,7 @@ const BotBuilder = () => {
     var js,fjs=d.getElementsByTagName(s)[0];
     if(d.getElementById(id))return;
     js=d.createElement(s);js.id=id;
-    js.src="https://widget.flossly.ai";
+    js.src="https://widget.flossly.ai/widget.js";
     fjs.parentNode.insertBefore(js,fjs);
   }(document,"script","flossy-widget"));
 </script>`;
