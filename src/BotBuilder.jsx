@@ -20,7 +20,7 @@ const BotBuilder = () => {
   const [appointmentGreeting, setAppointmentGreeting] = useState('Hello! 👋 I can help you book an appointment at our clinic.\nWhat\'s your full name?');
   // Confirmation messages (standardized - not configurable)
   const confirmationMessages = {
-    success: '✅ I\'ve reserved your appointment for [chosen date/time].\nYou\'ll receive a confirmation email shortly.\nWould you also like directions to our clinic?',
+    success: '✅ I\'ve reserved your appointment for [chosen date/time].\nYou\'ll receive a confirmation email shortly.',
     unavailable: '❌ That time isn\'t available.\nThe next slots are: [options]. Which one works for you?'
   };
   
@@ -1213,13 +1213,13 @@ const BotBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <div className="flex flex-col h-screen">
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
           {/* Top Bar */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-            <div className="flex space-x-8 relative">
+          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex space-x-4 sm:space-x-8 relative w-full sm:w-auto">
               <button 
                 onClick={() => setActiveTab('builder')}
                 className={`px-2 py-3 font-medium transition-all duration-300 relative ${
@@ -1253,10 +1253,10 @@ const BotBuilder = () => {
                 )}
               </button>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
               <button 
                 onClick={testMode ? exitTestMode : startTestMode}
-                className={`px-6 py-2.5 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md ${
+                className={`px-4 sm:px-6 py-2.5 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation ${
                   testMode 
                     ? 'bg-red-500 text-white hover:bg-red-600' 
                     : 'bg-blue-500 text-white hover:bg-blue-600'
@@ -1267,7 +1267,7 @@ const BotBuilder = () => {
             
               <button 
                 onClick={saveBot}
-                className="px-6 py-2.5 bg-flossy-green text-white rounded-full font-medium hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
+                className="px-4 sm:px-6 py-2.5 bg-flossy-green text-white rounded-full font-medium hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation"
               >
                 Save
               </button>
@@ -1275,11 +1275,11 @@ const BotBuilder = () => {
       </div>
 
           {/* Tab Content */}
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-4 sm:p-6 overflow-auto">
             {activeTab === 'builder' && (
-              <div className="grid grid-cols-2 gap-6 h-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                 {/* Left Column - Bot Settings Form */}
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 overflow-y-auto" style={{ height: 'calc(100vh - 140px)' }}>
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <h2 className="text-xl font-semibold text-flossy-text mb-6">Bot Settings</h2>
             
             <div className="space-y-4">
@@ -1287,7 +1287,7 @@ const BotBuilder = () => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleAccordion('basicSettings')}
-                  className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 sm:px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between text-left"
                 >
                   <div className="flex items-center space-x-3">
                     <Settings className="w-5 h-5 text-gray-600" />
@@ -1401,7 +1401,7 @@ const BotBuilder = () => {
                       <label className="block text-xs font-medium text-gray-700 mb-2 text-left">
                   Select Avatar
                 </label>
-                      <div className="flex space-x-2 flex-wrap">
+                      <div className="flex space-x-2 space-y-2 flex-wrap">
                   {avatars.map((avatar) => (
                     <div key={avatar.id} className="relative">
                       {avatar.id === 'upload' ? (
@@ -1475,7 +1475,7 @@ const BotBuilder = () => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <button
                   onClick={() => toggleAccordion('appointmentFlow')}
-                  className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 sm:px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between text-left"
                 >
                   <div className="flex items-center space-x-3">
                     <MessageCircle className="w-5 h-5 text-gray-600" />
@@ -1563,7 +1563,7 @@ const BotBuilder = () => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleAccordion('googleCalendar')}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-colors flex items-center justify-between text-left"
                 >
                   <div className="flex items-center space-x-3">
                     <Calendar className="w-5 h-5 text-blue-600" />
@@ -1591,7 +1591,7 @@ const BotBuilder = () => {
                       <button
                         onClick={connectGoogleCalendar}
                         disabled={isConnecting || !botId}
-                        className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md ${
+                        className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md touch-manipulation ${
                           isConnecting || !botId
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -1666,7 +1666,7 @@ const BotBuilder = () => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleAccordion('treatmentFlow')}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-colors flex items-center justify-between text-left"
                 >
                   <div className="flex items-center space-x-3">
                     <Stethoscope className="w-5 h-5 text-purple-600" />
@@ -1769,7 +1769,7 @@ const BotBuilder = () => {
           </div>
 
           {/* Right Column - Live Preview */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200" style={{ height: 'calc(100vh - 140px)' }}>
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-800">Live Preview</h2>
               {testMode && (
@@ -1782,9 +1782,9 @@ const BotBuilder = () => {
             {/* Chat Widget Preview */}
             <div className="relative">
               {/* Chat Window */}
-              <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-w-sm mx-auto" style={{ height: '500px' }}>
+              <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-full max-w-sm mx-auto" style={{ height: '500px', minHeight: '400px' }}>
                 {/* Chat Header */}
-                <div className="px-6 py-4 border-b border-gray-100" style={{ backgroundColor: themeColor }}>
+                <div className="px-4 sm:px-6 py-4 border-b border-gray-100" style={{ backgroundColor: themeColor }}>
                   <div className="flex items-center space-x-3">
                     <div className="relative">
                       <img 
@@ -1811,7 +1811,7 @@ const BotBuilder = () => {
                 </div>
 
                 {/* Chat Messages */}
-                <div className="chat-messages-container p-6 space-y-4 bg-gray-50/30" style={{ height: 'calc(100% - 165px)', overflowY: 'auto' }}>
+                <div className="chat-messages-container p-4 sm:p-6 space-y-4 bg-gray-50/30" style={{ height: 'calc(100% - 165px)', overflowY: 'auto' }}>
                   {testMode ? (
                     <>
                       {/* Test Mode - Animated Messages */}
@@ -2314,13 +2314,13 @@ const BotBuilder = () => {
                 
                 {/* Chat Input Area - Hidden in test mode */}
                 {!testMode && (
-                <div className="px-6 py-4 m bg-white border-t border-gray-100">
+                <div className="px-4 sm:px-6 py-4 bg-white border-t border-gray-100">
                   <div className="flex items-center space-x-3">
                     <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-3">
                       <p className="text-sm text-gray-500 text-left">Type a message...</p>
                     </div>
                     <button 
-                      className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
+                      className="w-10 h-10 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 touch-manipulation"
                       style={{ backgroundColor: themeColor }}
                     >
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2352,15 +2352,15 @@ const BotBuilder = () => {
 
             {activeTab === 'embed' && (
               <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 border border-gray-200 mb-8">
                   <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3">Add your Chatbot to your website</h2>
-                    <p className="text-gray-600 text-lg mb-4">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Add your Chatbot to your website</h2>
+                    <p className="text-gray-600 text-base sm:text-lg mb-4">
                       Copy and paste this code before the <code className="bg-gray-100 px-2 py-1 rounded text-sm">&lt;/body&gt;</code> tag on your website
                     </p>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 mb-6 relative">
+                  <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-4 sm:p-6 mb-6 relative">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex space-x-2">
                         <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -2369,12 +2369,12 @@ const BotBuilder = () => {
                       </div>
                       <span className="text-gray-400 text-sm">embed-code.html</span>
                     </div>
-                    <pre className="text-green-400 text-sm overflow-x-auto leading-relaxed">
+                    <pre className="text-green-400 text-xs sm:text-sm overflow-x-auto leading-relaxed">
                       <code>{generatedScript || `<!-- Click "Save" in Builder tab to generate your script -->\n<script>\n  window.flossyConfig = {/* Your bot config */};\n  (function(d,s,id){\n    var js,fjs=d.getElementsByTagName(s)[0];\n    if(d.getElementById(id))return;\n    js=d.createElement(s);js.id=id;\n    js.src="https://cdn.flossy.chat/widget.js";\n    fjs.parentNode.insertBefore(js,fjs);\n  }(document,"script","flossy-widget"));\n</script>`}</code>
                     </pre>
                     <button 
                       onClick={copyToClipboard}
-                      className={`absolute top-4 right-4 px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm font-medium ${
+                      className={`absolute top-4 right-4 px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm font-medium touch-manipulation ${
                         copySuccess 
                           ? 'bg-green-600 text-white' 
                           : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -2387,7 +2387,7 @@ const BotBuilder = () => {
                   <div className="flex justify-center space-x-4">
                     <button 
                       onClick={generateFreshCode}
-                      className="px-6 py-3 bg-flossy-green text-white rounded-full hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md font-medium"
+                      className="px-6 py-3 bg-flossy-green text-white rounded-full hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md font-medium touch-manipulation"
                     >
                       🔄 Generate Fresh Code
                     </button>
@@ -2396,16 +2396,16 @@ const BotBuilder = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Bot Position Control */}
-                  <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6">🎯 Position Controls</h3>
+                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-6">🎯 Position Controls</h3>
                     
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">Desktop & Tablet Position</label>
-                        <div className="flex space-x-3">
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                           <button
                             onClick={() => setBotPosition('left')}
-                            className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                            className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 touch-manipulation ${
                               botPosition === 'left' 
                                 ? 'border-flossy-green bg-green-50 text-green-700' 
                                 : 'border-gray-300 hover:border-gray-400'
@@ -2415,7 +2415,7 @@ const BotBuilder = () => {
                           </button>
                           <button
                             onClick={() => setBotPosition('right')}
-                            className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                            className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 touch-manipulation ${
                               botPosition === 'right' 
                                 ? 'border-flossy-green bg-green-50 text-green-700' 
                                 : 'border-gray-300 hover:border-gray-400'
@@ -2429,7 +2429,7 @@ const BotBuilder = () => {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">Side Spacing</label>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
                           <input 
                             type="range"
                             min="10"
@@ -2455,7 +2455,7 @@ const BotBuilder = () => {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">Bottom Spacing</label>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
                           <input 
                             type="range"
                             min="10"
@@ -2491,7 +2491,7 @@ const BotBuilder = () => {
                         
                         <div className="space-y-4">
                           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
                               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                 🖥️
                               </div>
@@ -2515,7 +2515,7 @@ const BotBuilder = () => {
                           </div>
                           
                           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
                               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                 📱
                               </div>
