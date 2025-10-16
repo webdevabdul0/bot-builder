@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://dev.flossly.ai/api';
+const API_BASE_URL = 'https://builder.flossly.ai/api';
 
 class AuthService {
   constructor() {
@@ -14,8 +14,10 @@ class AuthService {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/exchangeShortToken`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
           shortToken: shortToken
@@ -57,9 +59,11 @@ class AuthService {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         method: 'GET',
+        mode: 'cors',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         }
       });
 
