@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { ChevronDown, ChevronUp, Calendar, MessageCircle, Phone, Stethoscope, FileText, Settings, User, Mail, Globe, Palette, Eye, Code } from 'lucide-react';
+import { ChevronDown, ChevronUp, Calendar, MessageCircle, Phone, Stethoscope, FileText, Settings, User, Mail, Globe, Palette, Eye, Code, Save, Loader2 } from 'lucide-react';
+import authService from './services/authService';
+import botConfigService from './services/botConfigService';
 
-const BotBuilder = () => {
+const BotBuilder = ({ userProfile }) => {
   const [botName, setBotName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('upload');
@@ -58,6 +60,12 @@ const BotBuilder = () => {
   const [calendarStatus, setCalendarStatus] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   
+  // Bot configuration save/load states
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', null
+  const [saveMessage, setSaveMessage] = useState('');
+  
   // Test mode states
   const [testMode, setTestMode] = useState(false);
   const [currentStep, setCurrentStep] = useState('greeting');
@@ -97,6 +105,26 @@ const BotBuilder = () => {
     setCurrentFormField(-1);
     setCurrentCallbackField(-1);
   };
+
+  // Pre-populate fields from user profile
+  useEffect(() => {
+    if (userProfile) {
+      const organization = authService.getCurrentOrganization(userProfile);
+      
+      if (organization) {
+        // Pre-populate company information
+        setCompanyName(organization.name || '');
+        setCompanyPhone(organization.contact || '');
+        setCompanyOwnerEmail(userProfile.email || '');
+        
+        // Update opening messages to use actual company name
+        setOpeningMessages(prev => prev.map(msg => ({
+          ...msg,
+          text: msg.text.replace('[Company Name]', organization.name || '[Company Name]')
+        })));
+      }
+    }
+  }, [userProfile]);
   
   // Accordion states
   const [accordionStates, setAccordionStates] = useState({
@@ -329,64 +357,80 @@ const BotBuilder = () => {
   }, [botId]);
 
 
-  const saveBot = () => {
-    // Only generate a new botId if one doesn't exist
-    const newBotId = botId || uuidv4();
-    if (!botId) {
-      setBotId(newBotId);
-    }
-    
-    const position = botPosition === 'right' ? 'right' : 'left';
-    const sidePosition = position === 'right' ? `right:${sideSpacing}px` : `left:${sideSpacing}px`;
-    
-    // Bot configuration
-    const botConfig = {
-      botId: newBotId,
-      name: botName || 'Bot',
-      companyName: companyName || 'Your Company',
-      avatar: getCurrentAvatar(),
-      openingMessages: openingMessages.map(msg => ({
-        ...msg,
-        text: msg.text.replace('[Company Name]', companyName || 'Your Company')
-      })),
-      appointmentGreeting: appointmentGreeting,
-      privacyPolicyUrl: privacyPolicyUrl,
-      companyOwnerEmail: companyOwnerEmail,
-      companyPhone: companyPhone,
-      companyWebsite: companyWebsite,
-      webhookUrl: 'https://n8n.flossly.ai/webhook/appointment-booking', // n8n webhook for Google Calendar integration
-      gmailBrochureUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
-      gmailCallbackUrl: 'https://n8n.flossly.ai/webhook/gmail-callback', // n8n webhook for Gmail callback requests
-      themeColor: themeColor,
-      position: position,
-      sideSpacing: sideSpacing,
-      bottomSpacing: bottomSpacing,
-      showDesktop: showDesktop,
-      showMobile: showMobile,
-      appointmentFlow: {
-        fields: [
-          { name: 'fullName', type: 'text', label: 'Full Name', required: true },
-          { name: 'contact', type: 'email', label: 'Email Address', required: true },
-          { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
-          { name: 'preferredDate', type: 'date', label: 'Preferred Date', required: true },
-          { name: 'preferredTime', type: 'time', label: 'Preferred Time', required: true }
-        ]
-      },
-      treatmentFlow: {
-        options: treatmentOptions.filter(opt => opt.name.trim()),
-        webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
-      },
-      callbackFlow: {
-        fields: [
-          { name: 'name', type: 'text', label: 'Full Name', required: true },
-          { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
-          { name: 'reason', type: 'text', label: 'Reason for Callback', required: true },
-          { name: 'timing', type: 'text', label: 'Preferred Time', required: true }
-        ]
+  const saveBot = async () => {
+    setIsSaving(true);
+    setSaveStatus(null);
+    setSaveMessage('');
+
+    try {
+      // Only generate a new botId if one doesn't exist
+      const newBotId = botId || uuidv4();
+      if (!botId) {
+        setBotId(newBotId);
       }
-    };
-    
-    const script = `<script>
+      
+      const position = botPosition === 'right' ? 'right' : 'left';
+      
+      // Bot configuration for database
+      const botConfig = {
+        botId: newBotId,
+        userId: userProfile?.id,
+        organizationId: userProfile?.currentLoggedInOrgId,
+        name: botName || 'Bot',
+        companyName: companyName || 'Your Company',
+        avatar: getCurrentAvatar(),
+        openingMessages: openingMessages.map(msg => ({
+          ...msg,
+          text: msg.text.replace('[Company Name]', companyName || 'Your Company')
+        })),
+        appointmentGreeting: appointmentGreeting,
+        privacyPolicyUrl: privacyPolicyUrl,
+        companyOwnerEmail: companyOwnerEmail,
+        companyPhone: companyPhone,
+        companyWebsite: companyWebsite,
+        webhookUrl: 'https://n8n.flossly.ai/webhook/appointment-booking', // n8n webhook for Google Calendar integration
+        gmailBrochureUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
+        gmailCallbackUrl: 'https://n8n.flossly.ai/webhook/gmail-callback', // n8n webhook for Gmail callback requests
+        themeColor: themeColor,
+        position: position,
+        sideSpacing: sideSpacing,
+        bottomSpacing: bottomSpacing,
+        showDesktop: showDesktop,
+        showMobile: showMobile,
+        googleCalendarConnected: googleCalendarConnected,
+        calendarStatus: calendarStatus,
+        appointmentFlow: {
+          fields: [
+            { name: 'fullName', type: 'text', label: 'Full Name', required: true },
+            { name: 'contact', type: 'email', label: 'Email Address', required: true },
+            { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
+            { name: 'preferredDate', type: 'date', label: 'Preferred Date', required: true },
+            { name: 'preferredTime', type: 'time', label: 'Preferred Time', required: true }
+          ]
+        },
+        treatmentFlow: {
+          options: treatmentOptions.filter(opt => opt.name.trim()),
+          webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
+        },
+        callbackFlow: {
+          fields: [
+            { name: 'name', type: 'text', label: 'Full Name', required: true },
+            { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
+            { name: 'reason', type: 'text', label: 'Reason for Callback', required: true },
+            { name: 'timing', type: 'text', label: 'Preferred Time', required: true }
+          ]
+        }
+      };
+
+      // Save to database
+      const saveResult = await botConfigService.saveBotConfig(botConfig);
+      
+      if (saveResult.success) {
+        setSaveStatus('success');
+        setSaveMessage('Bot configuration saved successfully!');
+        
+        // Generate the script after successful save
+        const script = `<script>
   window.flossyConfig = ${JSON.stringify(botConfig)};
   (function(d,s,id){
     var js,fjs=d.getElementsByTagName(s)[0];
@@ -396,8 +440,85 @@ const BotBuilder = () => {
     fjs.parentNode.insertBefore(js,fjs);
   }(document,"script","flossy-widget"));
 </script>`;
-    
-    setGeneratedScript(script);
+        
+        setGeneratedScript(script);
+      } else {
+        setSaveStatus('error');
+        setSaveMessage(saveResult.error || 'Failed to save bot configuration');
+      }
+    } catch (error) {
+      console.error('Save bot error:', error);
+      setSaveStatus('error');
+      setSaveMessage('An unexpected error occurred while saving');
+    } finally {
+      setIsSaving(false);
+      
+      // Clear status message after 5 seconds
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 5000);
+    }
+  };
+
+  const loadBotConfig = async (botIdToLoad) => {
+    if (!botIdToLoad) {
+      setSaveStatus('error');
+      setSaveMessage('No bot ID provided for loading');
+      return;
+    }
+
+    setIsLoading(true);
+    setSaveStatus(null);
+    setSaveMessage('');
+
+    try {
+      const loadResult = await botConfigService.getBotConfig(botIdToLoad);
+      
+      if (loadResult.success && loadResult.config) {
+        const config = loadResult.config;
+        
+        // Load configuration into state
+        setBotName(config.name || '');
+        setCompanyName(config.companyName || '');
+        setSelectedAvatar(config.avatar?.type || 'upload');
+        setUploadedAvatar(config.avatar?.url || null);
+        setOpeningMessages(config.openingMessages || []);
+        setAppointmentGreeting(config.appointmentGreeting || '');
+        setPrivacyPolicyUrl(config.privacyPolicyUrl || '');
+        setCompanyOwnerEmail(config.companyOwnerEmail || '');
+        setCompanyPhone(config.companyPhone || '');
+        setCompanyWebsite(config.companyWebsite || '');
+        setThemeColor(config.themeColor || '#3B82F6');
+        setBotPosition(config.position || 'right');
+        setSideSpacing(config.sideSpacing || 25);
+        setBottomSpacing(config.bottomSpacing || 25);
+        setShowDesktop(config.showDesktop !== undefined ? config.showDesktop : true);
+        setShowMobile(config.showMobile !== undefined ? config.showMobile : true);
+        setGoogleCalendarConnected(config.googleCalendarConnected || false);
+        setCalendarStatus(config.calendarStatus || null);
+        setTreatmentOptions(config.treatmentFlow?.options || []);
+        setBotId(config.botId || '');
+        
+        setSaveStatus('success');
+        setSaveMessage('Bot configuration loaded successfully!');
+      } else {
+        setSaveStatus('error');
+        setSaveMessage(loadResult.error || 'Failed to load bot configuration');
+      }
+    } catch (error) {
+      console.error('Load bot config error:', error);
+      setSaveStatus('error');
+      setSaveMessage('An unexpected error occurred while loading');
+    } finally {
+      setIsLoading(false);
+      
+      // Clear status message after 5 seconds
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 5000);
+    }
   };
 
   const generateFreshCode = () => {
@@ -1756,14 +1877,69 @@ const BotBuilder = () => {
 
 
 
-              {/* Save Bot Button */}
-              <div className="pt-4">
-                <button
-                  onClick={saveBot}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
-                >
-                  Save Bot
-                </button>
+              {/* Save/Load Bot Buttons */}
+              <div className="pt-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={saveBot}
+                    disabled={isSaving}
+                    className={`py-3 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
+                      isSaving 
+                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-5 w-5" />
+                        Save Bot
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      const botIdToLoad = prompt('Enter Bot ID to load:');
+                      if (botIdToLoad) {
+                        loadBotConfig(botIdToLoad);
+                      }
+                    }}
+                    disabled={isLoading}
+                    className={`py-3 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
+                      isLoading 
+                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-5 w-5" />
+                        Load Bot
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Save Status Message */}
+                {saveStatus && (
+                  <div className={`p-3 rounded-lg text-sm ${
+                    saveStatus === 'success' 
+                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}>
+                    {saveMessage}
+                  </div>
+                )}
               </div>
             </div>
           </div>
