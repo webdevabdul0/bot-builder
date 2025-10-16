@@ -30,6 +30,9 @@ app.use('/api', createProxyMiddleware({
   changeOrigin: true,
   secure: true,
   logLevel: 'debug',
+  pathRewrite: {
+    '^/api': '/api'  // Keep the /api prefix
+  },
   onProxyReq: (proxyReq, req, res) => {
     console.log(`🔄 Proxying ${req.method} ${req.url} to dev.flossly.ai${proxyReq.path}`);
   },
