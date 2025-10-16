@@ -429,9 +429,9 @@ const BotBuilder = ({ userProfile }) => {
         setSaveStatus('success');
         setSaveMessage('Bot configuration saved successfully!');
         
-        // Generate the script after successful save
+        // Generate the shortened script (only botId)
         const script = `<script>
-  window.flossyConfig = ${JSON.stringify(botConfig)};
+  window.flossyConfig = {"botId":"${botConfig.botId}"};
   (function(d,s,id){
     var js,fjs=d.getElementsByTagName(s)[0];
     if(d.getElementById(id))return;
@@ -577,7 +577,7 @@ const BotBuilder = ({ userProfile }) => {
     };
     
     const script = `<script>
-  window.flossyConfig = ${JSON.stringify(botConfig)};
+  window.flossyConfig = {"botId":"${botConfig.botId}"};
   (function(d,s,id){
     var js,fjs=d.getElementsByTagName(s)[0];
     if(d.getElementById(id))return;
