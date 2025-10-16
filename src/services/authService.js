@@ -87,26 +87,26 @@ class AuthService {
   }
 
   /**
-   * Store access token in localStorage
+   * Store access token in sessionStorage
    * @param {string} token - The access token to store
    */
   storeAccessToken(token) {
     try {
-      localStorage.setItem('flossy_access_token', token);
+      sessionStorage.setItem('flossy_access_token', token);
       this.accessToken = token;
-      console.log('✅ Access token stored in localStorage');
+      console.log('✅ Access token stored in sessionStorage');
     } catch (error) {
       console.error('Failed to store access token:', error);
     }
   }
 
   /**
-   * Get stored access token from localStorage
+   * Get stored access token from sessionStorage
    * @returns {string|null} The stored access token or null
    */
   getStoredToken() {
     try {
-      return localStorage.getItem('flossy_access_token');
+      return sessionStorage.getItem('flossy_access_token');
     } catch (error) {
       console.error('Failed to get stored token:', error);
       return null;
@@ -118,7 +118,7 @@ class AuthService {
    */
   clearAuth() {
     try {
-      localStorage.removeItem('flossy_access_token');
+      sessionStorage.removeItem('flossy_access_token');
       this.accessToken = null;
     } catch (error) {
       console.error('Failed to clear auth data:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import BotBuilder from '../BotBuilder';
 import Unauthorized from './Unauthorized';
 import authService from '../services/authService';
@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 const AuthWrapper = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [authState, setAuthState] = useState('loading'); // 'loading', 'authenticated', 'unauthorized'
   const [userProfile, setUserProfile] = useState(null);
   const [error, setError] = useState(null);
@@ -53,6 +54,10 @@ const AuthWrapper = () => {
           // Store profile data and mark as authenticated
           setUserProfile(profileResult.profile);
           setAuthState('authenticated');
+          
+          // Clean the URL by removing the token parameter
+          console.log('✅ Authentication successful, cleaning URL...');
+          navigate('/', { replace: true });
           
         } else {
           // No short token in URL - check for existing stored token

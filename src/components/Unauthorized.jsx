@@ -27,8 +27,8 @@ const Unauthorized = () => {
             Unauthorized Access
           </h2>
           <p className="text-gray-600">
-            Your session has expired or you don't have permission to access the Bot Builder. 
-            Please return to Flossly and use the "Connect to Bot" button to get a new access token.
+            You need to access the Bot Builder through Flossly. 
+            Please return to Flossly and use the "Connect to Bot" button to get access.
           </p>
         </div>
         
