@@ -26,15 +26,16 @@ app.use((req, res, next) => {
 
 // Proxy API requests to dev.flossly.ai
 app.use('/api', createProxyMiddleware({
-  target: 'https://dev.flossly.ai',
+  target: 'https://dev.flossly.ai/api',  // Include /api in target
   changeOrigin: true,
   secure: true,
   logLevel: 'debug',
   pathRewrite: {
-    '^/api': '/api'  // Keep the /api prefix
+    '^/api': ''  // Remove /api from path since it's in target
   },
   onProxyReq: (proxyReq, req, res) => {
     console.log(`🔄 Proxying ${req.method} ${req.url} to dev.flossly.ai${proxyReq.path}`);
+    console.log(`🔄 Full URL: ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`);
   },
   onProxyRes: (proxyRes, req, res) => {
     console.log(`✅ Response: ${proxyRes.statusCode} for ${req.url}`);
