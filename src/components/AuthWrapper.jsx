@@ -28,35 +28,50 @@ const AuthWrapper = () => {
         // Get token from URL query params
         const shortToken = searchParams.get('token');
         
-        // Strict token validation - must be present and not empty
-        if (!shortToken || shortToken.trim() === '') {
-          console.warn('Access attempt without valid token');
-          setError('No authentication token provided');
-          setAuthState('unauthorized');
-          return;
-        }
+        // Check if we have a short token in URL (new authentication)
+        if (shortToken && shortToken.trim() !== '') {
+          console.log('New authentication with short token');
+          
+          // Exchange short token for access token
+          const tokenResult = await authService.exchangeShortToken(shortToken);
+          
+          if (!tokenResult.success) {
+            setError(tokenResult.error || 'Token exchange failed');
+            setAuthState('unauthorized');
+            return;
+          }
+          
+          // Fetch user profile with new token
+          const profileResult = await authService.getUserProfile();
+          
+          if (!profileResult.success) {
+            setError(profileResult.error || 'Failed to fetch user profile');
+            setAuthState('unauthorized');
+            return;
+          }
 
-        // Exchange short token for access token
-        const tokenResult = await authService.exchangeShortToken(shortToken);
-        
-        if (!tokenResult.success) {
-          setError(tokenResult.error || 'Token exchange failed');
-          setAuthState('unauthorized');
-          return;
+          // Store profile data and mark as authenticated
+          setUserProfile(profileResult.profile);
+          setAuthState('authenticated');
+          
+        } else {
+          // No short token in URL - check for existing stored token
+          console.log('Checking for existing stored token');
+          
+          // Try to get user profile with stored token
+          const profileResult = await authService.getUserProfile();
+          
+          if (profileResult.success) {
+            // Stored token is still valid
+            setUserProfile(profileResult.profile);
+            setAuthState('authenticated');
+          } else {
+            // Stored token is invalid/expired
+            console.log('Stored token is invalid or expired');
+            setError('Session expired. Please return to Flossly to get a new access token.');
+            setAuthState('unauthorized');
+          }
         }
-
-        // Fetch user profile
-        const profileResult = await authService.getUserProfile();
-        
-        if (!profileResult.success) {
-          setError(profileResult.error || 'Failed to fetch user profile');
-          setAuthState('unauthorized');
-          return;
-        }
-
-        // Store profile data
-        setUserProfile(profileResult.profile);
-        setAuthState('authenticated');
         
       } catch (error) {
         console.error('Authentication error:', error);

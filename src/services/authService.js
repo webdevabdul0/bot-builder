@@ -94,6 +94,7 @@ class AuthService {
     try {
       localStorage.setItem('flossy_access_token', token);
       this.accessToken = token;
+      console.log('✅ Access token stored in localStorage');
     } catch (error) {
       console.error('Failed to store access token:', error);
     }

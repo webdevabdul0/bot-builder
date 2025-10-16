@@ -15,8 +15,8 @@ const Unauthorized = () => {
             Unauthorized Access
           </h1>
           <p className="text-gray-600">
-            The Bot Builder can only be accessed through your CRM system with a valid authentication token. 
-            Please return to Flossly and use the "Connect to Bot" button to access this page.
+            Your session has expired or you don't have permission to access the Bot Builder. 
+            Please return to Flossly and use the "Connect to Bot" button to get a new access token.
           </p>
         </div>
         
