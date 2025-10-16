@@ -24,9 +24,9 @@ class AuthService {
 
       const data = await response.json();
 
-      if (data.Success && data.Code === 0) {
-        this.storeAccessToken(data.Data);
-        return { success: true, accessToken: data.Data };
+      if (data.success && data.code === 0) {
+        this.storeAccessToken(data.data);
+        return { success: true, accessToken: data.data };
       } else {
         return { 
           success: false, 
@@ -65,8 +65,8 @@ class AuthService {
 
       const data = await response.json();
 
-      if (data.Success && data.Code === 0) {
-        return { success: true, profile: data.Data };
+      if (data.success && data.code === 0) {
+        return { success: true, profile: data.data };
       } else {
         return { 
           success: false, 
