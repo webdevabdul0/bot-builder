@@ -88,6 +88,18 @@ const AuthWrapper = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
+          {/* Flossly Logo */}
+          <div className="mb-6">
+            <img 
+              src="/logo.svg" 
+              alt="Flossly" 
+              className="mx-auto h-12 w-auto mb-4"
+            />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Flossly Bot Builder
+            </h1>
+          </div>
+          
           <Loader2 className="mx-auto h-12 w-12 text-blue-600 animate-spin mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Authenticating...

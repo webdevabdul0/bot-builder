@@ -10,10 +10,22 @@ const Unauthorized = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
         <div className="mb-6">
+          {/* Flossly Logo */}
+          <div className="mb-6">
+            <img 
+              src="/logo.svg" 
+              alt="Flossly" 
+              className="mx-auto h-12 w-auto mb-4"
+            />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Flossly Bot Builder
+            </h1>
+          </div>
+          
           <AlertTriangle className="mx-auto h-16 w-16 text-red-500 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Unauthorized Access
-          </h1>
+          </h2>
           <p className="text-gray-600">
             Your session has expired or you don't have permission to access the Bot Builder. 
             Please return to Flossly and use the "Connect to Bot" button to get a new access token.
