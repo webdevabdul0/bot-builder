@@ -7,11 +7,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Only allow access to /botbuilder/auth with token parameter */}
+        {/* Bot Builder routes - check for authentication */}
         <Route path="/botbuilder/auth" element={<AuthWrapper />} />
+        <Route path="/botbuilder" element={<AuthWrapper />} />
+        <Route path="/" element={<AuthWrapper />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         {/* All other routes redirect to unauthorized */}
-        <Route path="/" element={<Navigate to="/unauthorized" replace />} />
         <Route path="*" element={<Navigate to="/unauthorized" replace />} />
       </Routes>
     </Router>
