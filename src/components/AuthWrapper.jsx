@@ -11,13 +11,26 @@ const AuthWrapper = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [error, setError] = useState(null);
 
+  // Log access attempts for security monitoring
+  useEffect(() => {
+    const token = searchParams.get('token');
+    console.log('Bot Builder access attempt:', {
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    });
+  }, [searchParams]);
+
   useEffect(() => {
     const authenticateUser = async () => {
       try {
         // Get token from URL query params
         const shortToken = searchParams.get('token');
         
-        if (!shortToken) {
+        // Strict token validation - must be present and not empty
+        if (!shortToken || shortToken.trim() === '') {
+          console.warn('Access attempt without valid token');
           setError('No authentication token provided');
           setAuthState('unauthorized');
           return;

@@ -15,8 +15,8 @@ const Unauthorized = () => {
             Unauthorized Access
           </h1>
           <p className="text-gray-600">
-            You don't have permission to access the Bot Builder. 
-            Please contact your administrator or return to Flossly.
+            The Bot Builder can only be accessed through your CRM system with a valid authentication token. 
+            Please return to Flossly and use the "Connect to Bot" button to access this page.
           </p>
         </div>
         
