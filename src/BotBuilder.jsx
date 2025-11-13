@@ -106,7 +106,7 @@ const BotBuilder = ({ userProfile }) => {
     setCurrentCallbackField(-1);
   };
 
-  // Pre-populate fields from user profile
+  // Pre-populate fields from user profile and load existing bot config
   useEffect(() => {
     if (userProfile) {
       const organization = authService.getCurrentOrganization(userProfile);
@@ -122,6 +122,9 @@ const BotBuilder = ({ userProfile }) => {
           ...msg,
           text: msg.text.replace('[Company Name]', organization.name || '[Company Name]')
         })));
+        
+        // Auto-load bot configuration from database for this organization
+        loadBotConfig();
       }
     }
   }, [userProfile]);
@@ -398,7 +401,8 @@ const BotBuilder = ({ userProfile }) => {
         showDesktop: showDesktop,
         showMobile: showMobile,
         googleCalendarConnected: googleCalendarConnected,
-        calendarStatus: calendarStatus,
+        // calendarStatus should be string or null, not an object
+        calendarStatus: (calendarStatus && typeof calendarStatus === 'object') ? null : calendarStatus,
         appointmentFlow: {
           fields: [
             { name: 'fullName', type: 'text', label: 'Full Name', required: true },
@@ -530,12 +534,17 @@ const BotBuilder = ({ userProfile }) => {
         setShowDesktop(config.showDesktop !== undefined ? config.showDesktop : true);
         setShowMobile(config.showMobile !== undefined ? config.showMobile : true);
         setGoogleCalendarConnected(config.googleCalendarConnected || false);
-        setCalendarStatus(config.calendarStatus || null);
+        // calendarStatus should be string or null, not an object
+        const loadedCalendarStatus = config.calendarStatus;
+        setCalendarStatus((loadedCalendarStatus && typeof loadedCalendarStatus === 'object') ? null : (loadedCalendarStatus || null));
         setTreatmentOptions(config.treatmentFlow?.options || []);
-        setBotId(config.botId || '');
+        // Set botId from loaded config (important for subsequent saves)
+        if (config.botId) {
+          setBotId(config.botId);
+        }
         
         setSaveStatus('success');
-        setSaveMessage('Bot configuration loaded successfully!');
+        setSaveMessage(`Bot configuration loaded successfully! Bot ID: ${config.botId || 'N/A'}`);
       } else {
         setSaveStatus('error');
         setSaveMessage(loadResult.error || 'Failed to load bot configuration');
@@ -1938,10 +1947,9 @@ const BotBuilder = ({ userProfile }) => {
                   
                   <button
                     onClick={() => {
-                      const botIdToLoad = prompt('Enter Bot ID to load:');
-                      if (botIdToLoad) {
-                        loadBotConfig(botIdToLoad);
-                      }
+                      // Load bot config for current organization (no prompt needed)
+                      // If botId exists, it will verify it matches, otherwise loads by organizationId
+                      loadBotConfig(botId || null);
                     }}
                     disabled={isLoading}
                     className={`py-3 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
@@ -1958,7 +1966,7 @@ const BotBuilder = ({ userProfile }) => {
                     ) : (
                       <>
                         <FileText className="h-5 w-5" />
-                        Load Bot
+                        Load Configuration
                       </>
                     )}
                   </button>
