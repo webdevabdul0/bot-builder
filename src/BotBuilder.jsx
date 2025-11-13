@@ -379,6 +379,7 @@ const BotBuilder = ({ userProfile }) => {
         botId: newBotId,
         userId: userProfile?.id,
         organizationId: userProfile?.currentLoggedInOrgId,
+        dentistId: userProfile?.id, // Required for public API endpoints
         name: botName || 'Bot',
         companyName: companyName || 'Your Company',
         avatar: getCurrentAvatar(),
