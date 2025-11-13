@@ -6,16 +6,29 @@ class BotConfigService {
   }
 
   /**
-   * Get stored access token from localStorage
+   * Get stored access token from sessionStorage (same as authService)
    * @returns {string|null} The stored access token or null
    */
   getStoredToken() {
     try {
+      // Check sessionStorage first (where authService stores it)
+      const token = sessionStorage.getItem('flossy_access_token');
+      if (token) {
+        return token;
+      }
+      // Fallback to localStorage for backward compatibility
       return localStorage.getItem('flossy_access_token');
     } catch (error) {
       console.error('Failed to get stored token:', error);
       return null;
     }
+  }
+  
+  /**
+   * Refresh access token from storage (call this if token might have been updated)
+   */
+  refreshToken() {
+    this.accessToken = this.getStoredToken();
   }
 
   /**
@@ -24,6 +37,9 @@ class BotConfigService {
    * @returns {Promise<{success: boolean, botId?: string, error?: string}>}
    */
   async saveBotConfig(botConfig) {
+    // Refresh token in case it was updated
+    this.refreshToken();
+    
     if (!this.accessToken) {
       return { 
         success: false, 
@@ -75,6 +91,9 @@ class BotConfigService {
    * @returns {Promise<{success: boolean, config?: object, error?: string}>}
    */
   async getBotConfig(botId = null) {
+    // Refresh token in case it was updated
+    this.refreshToken();
+    
     if (!this.accessToken) {
       return { 
         success: false, 

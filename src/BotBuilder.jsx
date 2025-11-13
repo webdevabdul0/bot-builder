@@ -443,7 +443,8 @@ const BotBuilder = ({ userProfile }) => {
         
         // Also save access token to VPS for Flossly API calls
         try {
-          const accessToken = localStorage.getItem('flossy_access_token');
+          // Get token from sessionStorage (where authService stores it)
+          const accessToken = sessionStorage.getItem('flossy_access_token') || localStorage.getItem('flossy_access_token');
           if (accessToken && userProfile?.id) {
             await fetch(`https://widget.flossly.ai/api/bot-token/${botConfig.botId}`, {
               method: 'POST',
