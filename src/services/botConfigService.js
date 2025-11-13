@@ -32,7 +32,10 @@ class BotConfigService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/crm/saveBotConfig`, {
+      // Use correct endpoint: /api/chatbot/save
+      // Note: userId and organizationId are automatically set from logged-in user
+      // Only 'name' is required, botId is optional (auto-generated if not provided)
+      const response = await fetch(`${API_BASE_URL}/chatbot/save`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -43,11 +46,13 @@ class BotConfigService {
 
       const data = await response.json();
 
-      if (data.Success && data.Code === 0) {
+      // Response format: { code: 1, data: {...} } where code: 1 means success
+      if (data.code === 1 && data.data) {
         return { 
           success: true, 
-          botId: botConfig.botId,
-          message: data.Data || 'Bot configuration saved successfully'
+          botId: data.data.botId || botConfig.botId,
+          config: data.data,
+          message: 'Bot configuration saved successfully'
         };
       } else {
         return { 
@@ -69,7 +74,7 @@ class BotConfigService {
    * @param {string} botId - The bot ID to fetch configuration for
    * @returns {Promise<{success: boolean, config?: object, error?: string}>}
    */
-  async getBotConfig(botId) {
+  async getBotConfig(botId = null) {
     if (!this.accessToken) {
       return { 
         success: false, 
@@ -78,7 +83,10 @@ class BotConfigService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/crm/getBotConfig?botId=${botId}`, {
+      // Use correct endpoint: /api/chatbot/get
+      // Note: Gets config by organizationId (from logged-in user), not by botId
+      // If botId is provided, we'll filter by it after getting the config
+      const response = await fetch(`${API_BASE_URL}/chatbot/get`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -88,10 +96,26 @@ class BotConfigService {
 
       const data = await response.json();
 
-      if (data.Success && data.Code === 0) {
+      // Response format: { code: 1, data: {...} } or { code: 1, data: null } if not found
+      if (data.code === 1) {
+        if (data.data === null) {
+          return { 
+            success: false, 
+            error: 'No bot configuration found for this organization' 
+          };
+        }
+        
+        // If botId was provided, verify it matches
+        if (botId && data.data.botId !== botId) {
+          return { 
+            success: false, 
+            error: `Bot configuration found but botId mismatch. Expected: ${botId}, Found: ${data.data.botId}` 
+          };
+        }
+        
         return { 
           success: true, 
-          config: data.Data 
+          config: data.data 
         };
       } else {
         return { 

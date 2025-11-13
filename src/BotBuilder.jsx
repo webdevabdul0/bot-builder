@@ -422,10 +422,45 @@ const BotBuilder = ({ userProfile }) => {
         }
       };
 
-      // Save to database
+      // Save to main API (dev.flossly.ai)
       const saveResult = await botConfigService.saveBotConfig(botConfig);
       
       if (saveResult.success) {
+        // Also save to VPS cache so widget can load it
+        try {
+          await fetch(`https://widget.flossly.ai/api/bot-config/${botConfig.botId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(saveResult.config || botConfig)
+          });
+          console.log('Bot config also saved to VPS cache');
+        } catch (vpsError) {
+          console.warn('Failed to save to VPS cache (non-critical):', vpsError);
+          // Don't fail the save if VPS cache fails
+        }
+        
+        // Also save access token to VPS for Flossly API calls
+        try {
+          const accessToken = localStorage.getItem('flossy_access_token');
+          if (accessToken && userProfile?.id) {
+            await fetch(`https://widget.flossly.ai/api/bot-token/${botConfig.botId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                accessToken: accessToken,
+                dentistId: userProfile.id
+              })
+            });
+            console.log('Access token saved to VPS');
+          }
+        } catch (tokenError) {
+          console.warn('Failed to save access token to VPS (non-critical):', tokenError);
+        }
+        
         setSaveStatus('success');
         setSaveMessage('Bot configuration saved successfully!');
         
@@ -461,18 +496,16 @@ const BotBuilder = ({ userProfile }) => {
     }
   };
 
-  const loadBotConfig = async (botIdToLoad) => {
-    if (!botIdToLoad) {
-      setSaveStatus('error');
-      setSaveMessage('No bot ID provided for loading');
-      return;
-    }
-
+  const loadBotConfig = async (botIdToLoad = null) => {
+    // Note: API gets config by organizationId (from logged-in user), not by botId
+    // botIdToLoad is optional - used only for verification if provided
+    
     setIsLoading(true);
     setSaveStatus(null);
     setSaveMessage('');
 
     try {
+      // Get config by organizationId (botId is optional for verification)
       const loadResult = await botConfigService.getBotConfig(botIdToLoad);
       
       if (loadResult.success && loadResult.config) {
