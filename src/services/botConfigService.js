@@ -1,4 +1,6 @@
-const API_BASE_URL = 'https://dev.flossly.ai/api';
+// Use builder.flossly.ai proxy to avoid CORS issues
+// The proxy routes /api/* to dev.flossly.ai/api/*
+const API_BASE_URL = 'https://builder.flossly.ai/api';
 
 class BotConfigService {
   constructor() {
