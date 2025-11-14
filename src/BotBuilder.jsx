@@ -420,6 +420,7 @@ const BotBuilder = ({ userProfile }) => {
         callbackFlow: {
           fields: [
             { name: 'name', type: 'text', label: 'Full Name', required: true },
+            { name: 'email', type: 'email', label: 'Email Address', required: true },
             { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
             { name: 'reason', type: 'text', label: 'Reason for Callback', required: true },
             { name: 'timing', type: 'text', label: 'Preferred Time', required: true }
