@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { ChevronDown, ChevronUp, Calendar, MessageCircle, Phone, Stethoscope, FileText, Settings, User, Mail, Globe, Palette, Eye, Code, Save, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Calendar, MessageCircle, Phone, Stethoscope, FileText, Settings, User, Mail, Globe, Palette, Eye, Code, Save, Loader2, CheckCircle, XCircle, X } from 'lucide-react';
 import authService from './services/authService';
 import botConfigService from './services/botConfigService';
 
@@ -45,7 +45,7 @@ const BotBuilder = ({ userProfile }) => {
   const [companyOwnerEmail, setCompanyOwnerEmail] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
-  const [themeColor, setThemeColor] = useState('#3B82F6'); // Default blue
+  const [themeColor, setThemeColor] = useState('#0061FB'); // Primary blue
   const [generatedScript, setGeneratedScript] = useState('');
   const [botId, setBotId] = useState('');
   const [activeTab, setActiveTab] = useState('builder');
@@ -470,19 +470,8 @@ const BotBuilder = ({ userProfile }) => {
         setSaveStatus('success');
         setSaveMessage('Bot configuration saved successfully!');
         
-        // Generate the shortened script (only botId)
-        const script = `<script>
-  window.flossyConfig = {"botId":"${botConfig.botId}"};
-  (function(d,s,id){
-    var js,fjs=d.getElementsByTagName(s)[0];
-    if(d.getElementById(id))return;
-    js=d.createElement(s);js.id=id;
-    js.src="https://widget.flossly.ai/widget.js";
-    fjs.parentNode.insertBefore(js,fjs);
-  }(document,"script","flossy-widget"));
-</script>`;
-        
-        setGeneratedScript(script);
+        // Generate the script automatically (only botId needed)
+        generateScriptFromBotId(botConfig.botId);
       } else {
         setSaveStatus('error');
         setSaveMessage(saveResult.error || 'Failed to save bot configuration');
@@ -500,6 +489,24 @@ const BotBuilder = ({ userProfile }) => {
         setSaveMessage('');
       }, 5000);
     }
+  };
+
+  // Helper function to generate script from botId
+  const generateScriptFromBotId = (botIdToUse) => {
+    if (!botIdToUse) return;
+    
+    const script = `<script>
+  window.flossyConfig = {"botId":"${botIdToUse}"};
+  (function(d,s,id){
+    var js,fjs=d.getElementsByTagName(s)[0];
+    if(d.getElementById(id))return;
+    js=d.createElement(s);js.id=id;
+    js.src="https://widget.flossly.ai/widget.js";
+    fjs.parentNode.insertBefore(js,fjs);
+  }(document,"script","flossy-widget"));
+</script>`;
+    
+    setGeneratedScript(script);
   };
 
   const loadBotConfig = async (botIdToLoad = null) => {
@@ -528,7 +535,7 @@ const BotBuilder = ({ userProfile }) => {
         setCompanyOwnerEmail(config.companyOwnerEmail || '');
         setCompanyPhone(config.companyPhone || '');
         setCompanyWebsite(config.companyWebsite || '');
-        setThemeColor(config.themeColor || '#3B82F6');
+        setThemeColor(config.themeColor || '#0061FB');
         setBotPosition(config.position || 'right');
         setSideSpacing(config.sideSpacing || 25);
         setBottomSpacing(config.bottomSpacing || 25);
@@ -542,6 +549,8 @@ const BotBuilder = ({ userProfile }) => {
         // Set botId from loaded config (important for subsequent saves)
         if (config.botId) {
           setBotId(config.botId);
+          // Generate script automatically when loading config
+          generateScriptFromBotId(config.botId);
         }
         
         setSaveStatus('success');
@@ -565,81 +574,12 @@ const BotBuilder = ({ userProfile }) => {
     }
   };
 
-  const generateFreshCode = () => {
-    // Always generate a new botId for fresh code
-    const newBotId = uuidv4();
-    setBotId(newBotId);
-    
-    const position = botPosition === 'right' ? 'right' : 'left';
-    const sidePosition = position === 'right' ? `right:${sideSpacing}px` : `left:${sideSpacing}px`;
-    
-    // Bot configuration
-    const botConfig = {
-      botId: newBotId,
-      name: botName || 'Bot',
-      companyName: companyName || 'Your Company',
-      avatar: getCurrentAvatar(),
-      openingMessages: openingMessages.map(msg => ({
-        ...msg,
-        text: msg.text.replace('[Company Name]', companyName || 'Your Company')
-      })),
-      appointmentGreeting: appointmentGreeting,
-      privacyPolicyUrl: privacyPolicyUrl,
-      companyOwnerEmail: companyOwnerEmail,
-      companyPhone: companyPhone,
-      companyWebsite: companyWebsite,
-      webhookUrl: 'https://n8n.flossly.ai/webhook/appointment-booking', // n8n webhook for Google Calendar integration
-      gmailBrochureUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure', // n8n webhook for Gmail brochure requests
-      gmailCallbackUrl: 'https://n8n.flossly.ai/webhook/gmail-callback', // n8n webhook for Gmail callback requests
-      themeColor: themeColor,
-      position: position,
-      sideSpacing: sideSpacing,
-      bottomSpacing: bottomSpacing,
-      showDesktop: showDesktop,
-      showMobile: showMobile,
-      appointmentFlow: {
-        fields: [
-          { name: 'fullName', type: 'text', label: 'Full Name', required: true },
-          { name: 'contact', type: 'email', label: 'Email Address', required: true },
-          { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
-          { name: 'preferredDate', type: 'date', label: 'Preferred Date', required: true },
-          { name: 'preferredTime', type: 'time', label: 'Preferred Time', required: true }
-        ]
-      },
-      treatmentFlow: {
-        options: treatmentOptions.filter(opt => opt.name.trim()),
-        webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
-      },
-      callbackFlow: {
-        fields: [
-          { name: 'name', type: 'text', label: 'Full Name', required: true },
-          { name: 'phone', type: 'tel', label: 'Phone Number', required: true },
-          { name: 'reason', type: 'text', label: 'Reason for Callback', required: true },
-          { name: 'timing', type: 'text', label: 'Preferred Time', required: true }
-        ]
-      }
-    };
-    
-    const script = `<script>
-  window.flossyConfig = {"botId":"${botConfig.botId}"};
-  (function(d,s,id){
-    var js,fjs=d.getElementsByTagName(s)[0];
-    if(d.getElementById(id))return;
-    js=d.createElement(s);js.id=id;
-    js.src="https://widget.flossly.ai/widget.js";
-    fjs.parentNode.insertBefore(js,fjs);
-  }(document,"script","flossy-widget"));
-</script>`;
-    
-    setGeneratedScript(script);
-  };
-
   const [copySuccess, setCopySuccess] = useState(false);
 
   const copyToClipboard = async () => {
     try {
       if (!generatedScript) {
-        alert('Please generate the script first by clicking "Save" in the Builder tab or "Generate Fresh Code" button.');
+        alert('Please save your bot configuration first. The script will be generated automatically after saving.');
         return;
       }
       
@@ -1377,8 +1317,46 @@ const BotBuilder = ({ userProfile }) => {
     setShowCallbackInput(false);
   };
 
+  // Toast notification component
+  const Toast = ({ show, message, type, onClose }) => {
+    if (!show) return null;
+    
+    return (
+      <div className="fixed top-4 right-4 z-50 animate-slideInRight">
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg min-w-[300px] max-w-md ${
+          type === 'success' 
+            ? 'bg-[#0061FB] text-white' 
+            : 'bg-red-500 text-white'
+        }`}>
+          {type === 'success' ? (
+            <CheckCircle className="w-5 h-5 flex-shrink-0" />
+          ) : (
+            <XCircle className="w-5 h-5 flex-shrink-0" />
+          )}
+          <p className="flex-1 text-sm font-medium">{message}</p>
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:text-white transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Toast Notification */}
+      <Toast 
+        show={saveStatus !== null}
+        message={saveMessage}
+        type={saveStatus === 'success' ? 'success' : 'error'}
+        onClose={() => {
+          setSaveStatus(null);
+          setSaveMessage('');
+        }}
+      />
       <div className="flex flex-col h-screen">
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
@@ -1389,7 +1367,7 @@ const BotBuilder = ({ userProfile }) => {
                 onClick={() => setActiveTab('builder')}
                 className={`px-2 py-3 font-medium transition-all duration-300 relative ${
                   activeTab === 'builder' 
-                    ? 'text-flossy-green' 
+                    ? 'text-[#0061FB]' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -1397,7 +1375,7 @@ const BotBuilder = ({ userProfile }) => {
                 {activeTab === 'builder' && (
                   <div 
                     className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300"
-                    style={{ backgroundColor: '#8FE3A8' }}
+                    style={{ backgroundColor: '#0061FB' }}
                   />
                 )}
               </button>
@@ -1405,7 +1383,7 @@ const BotBuilder = ({ userProfile }) => {
                 onClick={() => setActiveTab('embed')}
                 className={`px-2 py-3 font-medium transition-all duration-300 relative ${
                   activeTab === 'embed' 
-                    ? 'text-flossy-green' 
+                    ? 'text-[#0061FB]' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -1413,7 +1391,7 @@ const BotBuilder = ({ userProfile }) => {
                 {activeTab === 'embed' && (
                   <div 
                     className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300"
-                    style={{ backgroundColor: '#8FE3A8' }}
+                    style={{ backgroundColor: '#0061FB' }}
                   />
                 )}
               </button>
@@ -1421,10 +1399,10 @@ const BotBuilder = ({ userProfile }) => {
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
               <button 
                 onClick={testMode ? exitTestMode : startTestMode}
-                className={`px-4 sm:px-6 py-2.5 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation ${
+                className={`px-4 sm:px-6 h-12 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation ${
                   testMode 
                     ? 'bg-red-500 text-white hover:bg-red-600' 
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-[#171952] text-white hover:bg-[#0F1240]'
                 }`}
               >
                 {testMode ? 'Exit Test' : 'Test Bot'}
@@ -1432,7 +1410,7 @@ const BotBuilder = ({ userProfile }) => {
             
               <button 
                 onClick={saveBot}
-                className="px-4 sm:px-6 py-2.5 bg-flossy-green text-white rounded-full font-medium hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation"
+                className="px-4 sm:px-6 h-12 bg-[#0061FB] text-white rounded-lg font-medium hover:bg-[#0052E6] transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md text-sm sm:text-base touch-manipulation"
               >
                 Save
               </button>
@@ -1471,7 +1449,7 @@ const BotBuilder = ({ userProfile }) => {
                   type="text"
                   value={botName}
                   onChange={(e) => setBotName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                   placeholder="Enter bot name"
                 />
               </div>
@@ -1485,7 +1463,7 @@ const BotBuilder = ({ userProfile }) => {
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                   placeholder="Enter your company name"
                 />
                 <p className="text-xs text-gray-500 mt-1 text-left">This will replace [Company Name] in opening messages</p>
@@ -1500,7 +1478,7 @@ const BotBuilder = ({ userProfile }) => {
                         type="email"
                         value={companyOwnerEmail}
                         onChange={(e) => setCompanyOwnerEmail(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="owner@yourcompany.com"
                       />
                       <p className="text-xs text-gray-500 mt-1 text-left">Used for brochure requests and notifications</p>
@@ -1515,7 +1493,7 @@ const BotBuilder = ({ userProfile }) => {
                         type="tel"
                         value={companyPhone}
                         onChange={(e) => setCompanyPhone(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="+1 (555) 123-4567"
                       />
                       <p className="text-xs text-gray-500 mt-1 text-left">Will be included in brochure emails</p>
@@ -1530,7 +1508,7 @@ const BotBuilder = ({ userProfile }) => {
                         type="url"
                         value={companyWebsite}
                         onChange={(e) => setCompanyWebsite(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="https://yourcompany.com"
                       />
                       <p className="text-xs text-gray-500 mt-1 text-left">Will be included in brochure emails</p>
@@ -1573,8 +1551,8 @@ const BotBuilder = ({ userProfile }) => {
                         <label className="cursor-pointer">
                           <div className={`w-10 h-10 rounded-md flex items-center justify-center transition-all border-2 ${
                             selectedAvatar === avatar.id 
-                                    ? 'ring-2 ring-flossy-green ring-offset-2 border-flossy-green' 
-                                    : 'border-gray-300 hover:border-flossy-green'
+                                    ? 'ring-2 ring-[#0061FB] ring-offset-2 border-[#0061FB]' 
+                                    : 'border-gray-300 hover:border-[#0061FB]'
                                 }`}>
                             {uploadedAvatar ? (
                               <img 
@@ -1627,7 +1605,7 @@ const BotBuilder = ({ userProfile }) => {
                         type="url"
                         value={privacyPolicyUrl}
                         onChange={(e) => setPrivacyPolicyUrl(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="https://yoursite.com/privacy-policy"
                       />
                       <p className="text-xs text-gray-500 mt-1 text-left">If provided, bot will mention privacy policy after collecting email</p>
@@ -1654,7 +1632,7 @@ const BotBuilder = ({ userProfile }) => {
                       <span className="text-sm font-medium text-gray-700">Configure opening messages</span>
                       <button
                         onClick={addOpeningMessage}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+                        className="px-3 h-10 bg-[#0061FB] text-white text-xs rounded-lg hover:bg-[#0052E6] transition-colors"
                       >
                         + Add Message
                   </button>
@@ -1679,7 +1657,7 @@ const BotBuilder = ({ userProfile }) => {
                             <textarea
                               value={message.text}
                               onChange={(e) => updateOpeningMessage(message.id, 'text', e.target.value)}
-                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                               rows="2"
                               placeholder="Enter message text"
                             />
@@ -1715,7 +1693,7 @@ const BotBuilder = ({ userProfile }) => {
                 <textarea
                   value={appointmentGreeting}
                   onChange={(e) => setAppointmentGreeting(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                   rows="3"
                   placeholder="Message shown when user selects appointment booking"
                 />
@@ -1728,14 +1706,14 @@ const BotBuilder = ({ userProfile }) => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleAccordion('googleCalendar')}
-                  className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-[#0061FB]/10 to-[#0061FB]/5 hover:from-[#0061FB]/20 hover:to-[#0061FB]/10 transition-colors flex items-center justify-between text-left"
                 >
                   <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-blue-600" />
+                    <Calendar className="w-5 h-5 text-[#0061FB]" />
                     <span className="font-medium text-gray-900">Google Calendar Integration</span>
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                     googleCalendarConnected 
-                        ? 'bg-green-100 text-green-700' 
+                        ? 'bg-[#0061FB]/10 text-[#0061FB]' 
                         : 'bg-gray-100 text-gray-600'
                   }`}>
                       {googleCalendarConnected ? 'Connected' : 'Not Connected'}
@@ -1756,10 +1734,10 @@ const BotBuilder = ({ userProfile }) => {
                       <button
                         onClick={connectGoogleCalendar}
                         disabled={isConnecting || !botId}
-                        className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md touch-manipulation ${
+                        className={`w-full h-12 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md touch-manipulation ${
                           isConnecting || !botId
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-[#0061FB] text-white hover:bg-[#0052E6]'
                         }`}
                       >
                         {isConnecting ? (
@@ -1785,10 +1763,10 @@ const BotBuilder = ({ userProfile }) => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-4 border border-green-200">
+                    <div className="bg-white rounded-lg p-4 border border-[#0061FB]/20">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-green-800 mb-1">✅ Google Calendar Connected</h4>
+                          <h4 className="font-medium text-[#0061FB] mb-1">✅ Google Calendar Connected</h4>
                           <p className="text-sm text-gray-600">
                             Appointments will be automatically added to your calendar
                           </p>
@@ -1807,12 +1785,12 @@ const BotBuilder = ({ userProfile }) => {
                       </div>
                     </div>
                     
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="bg-[#0061FB]/10 border border-[#0061FB]/20 rounded-lg p-4">
                       <div className="flex items-start space-x-3">
-                        <div className="text-blue-500 text-lg">💡</div>
+                        <div className="text-[#0061FB] text-lg">💡</div>
                         <div>
-                          <h4 className="text-sm font-medium text-blue-800 mb-1">How it works</h4>
-                          <ul className="text-xs text-blue-600 space-y-1">
+                          <h4 className="text-sm font-medium text-[#0061FB] mb-1">How it works</h4>
+                          <ul className="text-xs text-[#0061FB] space-y-1">
                             <li>• Customers book appointments through your chatbot</li>
                             <li>• Appointments are automatically added to your Google Calendar</li>
                             <li>• You'll receive email reminders 24 hours before each appointment</li>
@@ -1831,10 +1809,10 @@ const BotBuilder = ({ userProfile }) => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleAccordion('treatmentFlow')}
-                  className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-[#171952]/10 to-[#171952]/5 hover:from-[#171952]/20 hover:to-[#171952]/10 transition-colors flex items-center justify-between text-left"
                 >
                   <div className="flex items-center space-x-3">
-                    <Stethoscope className="w-5 h-5 text-purple-600" />
+                    <Stethoscope className="w-5 h-5 text-[#171952]" />
                     <span className="font-medium text-gray-900">Treatment Enquiry Workflow</span>
                   </div>
                   {accordionStates.treatmentFlow ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -1848,7 +1826,7 @@ const BotBuilder = ({ userProfile }) => {
                         <span className="text-sm font-medium text-gray-700">Treatment Options</span>
                         <button
                           onClick={addTreatmentOption}
-                          className="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-md hover:bg-purple-700 transition-colors"
+                          className="px-3 h-10 bg-[#0061FB] text-white text-xs rounded-lg hover:bg-[#0052E6] transition-colors"
                         >
                           + Add Treatment
                         </button>
@@ -1878,7 +1856,7 @@ const BotBuilder = ({ userProfile }) => {
                                   type="text"
                                   value={option.name}
                                   onChange={(e) => updateTreatmentOption(option.id, 'name', e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                                   placeholder="e.g., Teeth Whitening"
                                 />
                               </div>
@@ -1890,7 +1868,7 @@ const BotBuilder = ({ userProfile }) => {
                                 <textarea
                                   value={option.description}
                                   onChange={(e) => updateTreatmentOption(option.id, 'description', e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                                   rows="2"
                                   placeholder="Brief description of the treatment"
                                 />
@@ -1904,7 +1882,7 @@ const BotBuilder = ({ userProfile }) => {
                                   type="url"
                                   value={option.brochureUrl}
                                   onChange={(e) => updateTreatmentOption(option.id, 'brochureUrl', e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-flossy-green focus:border-flossy-green transition-all"
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                                   placeholder="https://yoursite.com/brochure.pdf"
                                 />
                                 <p className="text-xs text-gray-500 mt-1 text-left">PDF or document URL to send to users</p>
@@ -1927,11 +1905,11 @@ const BotBuilder = ({ userProfile }) => {
                   <button
                     onClick={saveBot}
                     disabled={isSaving}
-                    className={`py-3 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
-                      isSaving 
+                    className={`h-12 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
+                        isSaving
                         ? 'bg-gray-400 text-white cursor-not-allowed' 
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                        : 'bg-[#0061FB] text-white hover:bg-[#0052E6]'
+                      }`}
                   >
                     {isSaving ? (
                       <>
@@ -1953,10 +1931,10 @@ const BotBuilder = ({ userProfile }) => {
                       loadBotConfig(botId || null);
                     }}
                     disabled={isLoading}
-                    className={`py-3 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
-                      isLoading 
-                        ? 'bg-gray-400 text-white cursor-not-allowed' 
-                        : 'bg-green-600 text-white hover:bg-green-700'
+                    className={`h-12 px-4 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 ${
+                        isLoading
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-[#0061FB] text-white hover:bg-[#0052E6]'
                     }`}
                   >
                     {isLoading ? (
@@ -1977,7 +1955,7 @@ const BotBuilder = ({ userProfile }) => {
                 {saveStatus && (
                   <div className={`p-3 rounded-lg text-sm ${
                     saveStatus === 'success' 
-                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      ? 'bg-[#0061FB]/10 text-[#0061FB] border border-[#0061FB]/20' 
                       : 'bg-red-50 text-red-700 border border-red-200'
                   }`}>
                     {saveMessage}
@@ -1992,7 +1970,7 @@ const BotBuilder = ({ userProfile }) => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-800">Live Preview</h2>
               {testMode && (
-                <div className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-200 animate-pulse">
+                <div className="text-xs bg-[#0061FB]/10 text-[#0061FB] px-3 py-1 rounded-lg border border-[#0061FB]/20 animate-pulse">
                   🤖 Interactive Mode Active
                 </div>
               )}
@@ -2011,7 +1989,7 @@ const BotBuilder = ({ userProfile }) => {
                         alt={avatars.find(a => a.id === selectedAvatar)?.name || 'Bot'}
                         className="w-10 h-10 rounded-full ring-2 ring-white/30"
                       />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#0061FB] rounded-full border-2 border-white"></div>
                   </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-white text-lg text-left">
@@ -2603,14 +2581,13 @@ const BotBuilder = ({ userProfile }) => {
                     </button>
                   </div>
                   
-                  <div className="flex justify-center space-x-4">
-                    <button 
-                      onClick={generateFreshCode}
-                      className="px-6 py-3 bg-flossy-green text-white rounded-full hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md font-medium touch-manipulation"
-                    >
-                      🔄 Generate Fresh Code
-                    </button>
-                  </div>
+                  {!botId && (
+                    <div className="mt-4 text-center">
+                      <p className="text-sm text-gray-600">
+                        💡 <strong>Tip:</strong> Save your bot configuration to generate the embed script automatically.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -2657,7 +2634,7 @@ const BotBuilder = ({ userProfile }) => {
                             onChange={(e) => setSideSpacing(parseInt(e.target.value))}
                             className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                             style={{
-                              background: `linear-gradient(to right, #8FE3A8 0%, #8FE3A8 ${(sideSpacing-10)/90*100}%, #e5e7eb ${(sideSpacing-10)/90*100}%, #e5e7eb 100%)`
+                              background: `linear-gradient(to right, #0061FB 0%, #0061FB ${(sideSpacing-10)/90*100}%, #e5e7eb ${(sideSpacing-10)/90*100}%, #e5e7eb 100%)`
                             }}
                           />
                           <div className="flex items-center space-x-2">
@@ -2683,7 +2660,7 @@ const BotBuilder = ({ userProfile }) => {
                             onChange={(e) => setBottomSpacing(parseInt(e.target.value))}
                             className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                             style={{
-                              background: `linear-gradient(to right, #8FE3A8 0%, #8FE3A8 ${(bottomSpacing-10)/90*100}%, #e5e7eb ${(bottomSpacing-10)/90*100}%, #e5e7eb 100%)`
+                              background: `linear-gradient(to right, #0061FB 0%, #0061FB ${(bottomSpacing-10)/90*100}%, #e5e7eb ${(bottomSpacing-10)/90*100}%, #e5e7eb 100%)`
                             }}
                           />
                           <div className="flex items-center space-x-2">
