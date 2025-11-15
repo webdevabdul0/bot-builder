@@ -16,11 +16,25 @@ app.use('/api', createProxyMiddleware({
   target: 'https://dev.flossly.ai',
   changeOrigin: true,
   secure: true,
+  headers: {
+    // Ensure Authorization and other headers are forwarded
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
   onProxyReq: (proxyReq, req, res) => {
+    // Forward Authorization header if present
+    if (req.headers.authorization) {
+      proxyReq.setHeader('Authorization', req.headers.authorization);
+    }
     console.log(`Proxying ${req.method} ${req.url} to ${proxyReq.getHeader('host')}${proxyReq.path}`);
+    console.log(`Headers: Authorization=${req.headers.authorization ? 'present' : 'missing'}`);
   },
   onProxyRes: (proxyRes, req, res) => {
     console.log(`Response: ${proxyRes.statusCode} for ${req.url}`);
+  },
+  onError: (err, req, res) => {
+    console.error(`Proxy error for ${req.url}:`, err.message);
+    res.status(500).json({ error: 'Proxy error', message: err.message });
   }
 }));
 

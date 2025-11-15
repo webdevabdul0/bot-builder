@@ -1599,7 +1599,7 @@ const BotBuilder = ({ userProfile }) => {
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                   placeholder="Enter your company name"
                 />
-                <p className="text-xs text-gray-500 mt-1 text-left">This will replace [Company Name] in opening messages</p>
+                <p className="text-xs text-gray-500 mt-1 text-left">This will replace [Company Name] in opening messages and update in bot preview, interactive preview, and widget</p>
               </div>
 
                     {/* Company Owner Email */}
@@ -1614,7 +1614,7 @@ const BotBuilder = ({ userProfile }) => {
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="owner@yourcompany.com"
                       />
-                      <p className="text-xs text-gray-500 mt-1 text-left">Used for brochure requests and notifications</p>
+                      <p className="text-xs text-gray-500 mt-1 text-left">Used for brochure requests, notifications, and will be saved to widget config</p>
                     </div>
 
                     {/* Company Phone */}
@@ -1629,7 +1629,7 @@ const BotBuilder = ({ userProfile }) => {
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="+1 (555) 123-4567"
                       />
-                      <p className="text-xs text-gray-500 mt-1 text-left">Will be included in brochure emails</p>
+                      <p className="text-xs text-gray-500 mt-1 text-left">Will be included in brochure emails and saved to widget config</p>
                     </div>
 
                     {/* Company Website */}

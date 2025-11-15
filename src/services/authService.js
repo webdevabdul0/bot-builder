@@ -1,4 +1,7 @@
-const API_BASE_URL = 'https://builder.flossly.ai/api';
+// Use localhost proxy in development, production API in production
+const API_BASE_URL = import.meta.env.DEV 
+  ? 'http://localhost:3001/api'  // Local proxy server
+  : 'https://builder.flossly.ai/api';  // Production API
 
 class AuthService {
   constructor() {
