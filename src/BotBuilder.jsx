@@ -109,23 +109,9 @@ const BotBuilder = ({ userProfile }) => {
   // Pre-populate fields from user profile and load existing bot config
   useEffect(() => {
     if (userProfile) {
-      const organization = authService.getCurrentOrganization(userProfile);
-      
-      if (organization) {
-        // Pre-populate company information
-        setCompanyName(organization.name || '');
-        setCompanyPhone(organization.contact || '');
-        setCompanyOwnerEmail(userProfile.email || '');
-        
-        // Update opening messages to use actual company name
-        setOpeningMessages(prev => prev.map(msg => ({
-          ...msg,
-          text: msg.text.replace('[Company Name]', organization.name || '[Company Name]')
-        })));
-        
-        // Auto-load bot configuration from database for this organization
-        loadBotConfig();
-      }
+      // Auto-load bot configuration from database for this organization
+      // This will load saved values first, and only use organization defaults if no saved config exists
+      loadBotConfig();
     }
   }, [userProfile]);
   
@@ -525,22 +511,38 @@ const BotBuilder = ({ userProfile }) => {
       if (loadResult.success && loadResult.config) {
         const config = loadResult.config;
         
-        // Get organization name as fallback for company name
+        // Get organization defaults (only used if saved values don't exist)
         const organization = userProfile ? authService.getCurrentOrganization(userProfile) : null;
-        const defaultCompanyName = organization?.name || '';
         
         // Load configuration into state
+        // IMPORTANT: Prioritize saved values over organization defaults
+        // Only use organization defaults if the saved value is null/undefined (not empty string)
         setBotName(config.name || '');
-        // Use saved companyName, or fall back to organization name, or empty string
-        setCompanyName(config.companyName || defaultCompanyName || '');
+        
+        // Company name: Use saved value if it exists (even if empty string), otherwise use organization default
+        const savedCompanyName = config.companyName !== undefined && config.companyName !== null 
+          ? config.companyName 
+          : (organization?.name || '');
+        setCompanyName(savedCompanyName);
+        
         setSelectedAvatar(config.avatar?.type || 'upload');
         setUploadedAvatar(config.avatar?.url || null);
         setOpeningMessages(config.openingMessages || []);
         setAppointmentGreeting(config.appointmentGreeting || '');
         setPrivacyPolicyUrl(config.privacyPolicyUrl || '');
-        // Use saved values, or fall back to organization/user defaults
-        setCompanyOwnerEmail(config.companyOwnerEmail || userProfile?.email || '');
-        setCompanyPhone(config.companyPhone || (organization?.contact || ''));
+        
+        // Company owner email: Use saved value if it exists, otherwise use user email
+        const savedCompanyOwnerEmail = config.companyOwnerEmail !== undefined && config.companyOwnerEmail !== null
+          ? config.companyOwnerEmail
+          : (userProfile?.email || '');
+        setCompanyOwnerEmail(savedCompanyOwnerEmail);
+        
+        // Company phone: Use saved value if it exists, otherwise use organization contact
+        const savedCompanyPhone = config.companyPhone !== undefined && config.companyPhone !== null
+          ? config.companyPhone
+          : (organization?.contact || '');
+        setCompanyPhone(savedCompanyPhone);
+        
         setCompanyWebsite(config.companyWebsite || '');
         setThemeColor(config.themeColor || '#0061FB');
         setBotPosition(config.position || 'right');
@@ -563,6 +565,13 @@ const BotBuilder = ({ userProfile }) => {
         setSaveStatus('success');
         setSaveMessage(`Bot configuration loaded successfully! Bot ID: ${config.botId || 'N/A'}`);
       } else {
+        // No saved config exists - use organization defaults for initial setup
+        const organization = userProfile ? authService.getCurrentOrganization(userProfile) : null;
+        if (organization) {
+          setCompanyName(organization.name || '');
+          setCompanyPhone(organization.contact || '');
+          setCompanyOwnerEmail(userProfile?.email || '');
+        }
         setSaveStatus('error');
         setSaveMessage(loadResult.error || 'Failed to load bot configuration');
       }
