@@ -525,16 +525,22 @@ const BotBuilder = ({ userProfile }) => {
       if (loadResult.success && loadResult.config) {
         const config = loadResult.config;
         
+        // Get organization name as fallback for company name
+        const organization = userProfile ? authService.getCurrentOrganization(userProfile) : null;
+        const defaultCompanyName = organization?.name || '';
+        
         // Load configuration into state
         setBotName(config.name || '');
-        setCompanyName(config.companyName || '');
+        // Use saved companyName, or fall back to organization name, or empty string
+        setCompanyName(config.companyName || defaultCompanyName || '');
         setSelectedAvatar(config.avatar?.type || 'upload');
         setUploadedAvatar(config.avatar?.url || null);
         setOpeningMessages(config.openingMessages || []);
         setAppointmentGreeting(config.appointmentGreeting || '');
         setPrivacyPolicyUrl(config.privacyPolicyUrl || '');
-        setCompanyOwnerEmail(config.companyOwnerEmail || '');
-        setCompanyPhone(config.companyPhone || '');
+        // Use saved values, or fall back to organization/user defaults
+        setCompanyOwnerEmail(config.companyOwnerEmail || userProfile?.email || '');
+        setCompanyPhone(config.companyPhone || (organization?.contact || ''));
         setCompanyWebsite(config.companyWebsite || '');
         setThemeColor(config.themeColor || '#0061FB');
         setBotPosition(config.position || 'right');
@@ -720,8 +726,30 @@ const BotBuilder = ({ userProfile }) => {
           scrollToBottom();
           
           setTimeout(() => {
+            // Find the first field that doesn't have data
+            const appointmentFields = [
+              { name: 'fullName', index: 0 },
+              { name: 'contact', index: 1 },
+              { name: 'phone', index: 2 },
+              { name: 'preferredDate', index: 3 },
+              { name: 'preferredTime', index: 4 }
+            ];
+            
+            let startFieldIndex = 0;
+            for (const field of appointmentFields) {
+              if (!formData[field.name]) {
+                startFieldIndex = field.index;
+                break;
+              }
+            }
+            
+            // If we have some data, show a message
+            if (formData.fullName || formData.contact || formData.phone) {
+              addBotMessage('Great! I have some of your details already. Let me collect the remaining information.');
+            }
+            
             setShowForm(true);
-            setCurrentFormField(0);
+            setCurrentFormField(startFieldIndex);
           }, 800);
         }, 800);
       }, 500);
@@ -998,8 +1026,30 @@ const BotBuilder = ({ userProfile }) => {
           scrollToBottom();
           
           setTimeout(() => {
+            // Find the first field that doesn't have data
+            const appointmentFields = [
+              { name: 'fullName', index: 0 },
+              { name: 'contact', index: 1 },
+              { name: 'phone', index: 2 },
+              { name: 'preferredDate', index: 3 },
+              { name: 'preferredTime', index: 4 }
+            ];
+            
+            let startFieldIndex = 0;
+            for (const field of appointmentFields) {
+              if (!formData[field.name]) {
+                startFieldIndex = field.index;
+                break;
+              }
+            }
+            
+            // If we have some data, show a message
+            if (formData.fullName || formData.contact || formData.phone) {
+              addBotMessage('Great! I have some of your details already. Let me collect the remaining information.');
+            }
+            
             setShowForm(true);
-            setCurrentFormField(0);
+            setCurrentFormField(startFieldIndex);
           }, 800);
         }, 800);
       }, 500);
@@ -1020,20 +1070,37 @@ const BotBuilder = ({ userProfile }) => {
     scrollToBottom();
     
     if (option.type === 'callback') {
-      // Check if we have previously collected details
-      if (formData.fullName && formData.contact && formData.phone) {
+      // Check if we have previously collected details from any flow
+      const callbackDataFromForm = {
+        name: formData.fullName || '',
+        phone: formData.phone || '',
+        email: formData.contact || '',
+        reason: '',
+        timing: ''
+      };
+      
+      // Find the first field that doesn't have data
+      const callbackFields = [
+        { name: 'name', index: 0 },
+        { name: 'email', index: 1 },
+        { name: 'phone', index: 2 },
+        { name: 'reason', index: 3 },
+        { name: 'timing', index: 4 }
+      ];
+      
+      let startFieldIndex = 0;
+      for (const field of callbackFields) {
+        if (!callbackDataFromForm[field.name]) {
+          startFieldIndex = field.index;
+          break;
+        }
+      }
+      
+      if (callbackDataFromForm.name || callbackDataFromForm.email || callbackDataFromForm.phone) {
         // Use existing details
-        await addBotMessage(`Perfect! I'll have our team call you at ${formData.phone}. Is there a specific reason you'd like us to call or a particular question you have?`);
-        
-        // Show callback form with pre-filled data
-        setCallbackData({
-          name: formData.fullName,
-          phone: formData.phone,
-          email: formData.contact,
-          reason: '',
-          timing: ''
-        });
-        setCurrentCallbackField(2); // Skip name and phone, start with reason
+        await addBotMessage(`Perfect! I have some of your details already. Let me collect the remaining information.`);
+        setCallbackData(callbackDataFromForm);
+        setCurrentCallbackField(startFieldIndex);
         setShowCallbackForm(true);
       } else {
         // Start fresh callback flow
@@ -1094,27 +1161,66 @@ const BotBuilder = ({ userProfile }) => {
           scrollToBottom();
           
           setTimeout(() => {
+            // Find the first field that doesn't have data
+            const appointmentFields = [
+              { name: 'fullName', index: 0 },
+              { name: 'contact', index: 1 },
+              { name: 'phone', index: 2 },
+              { name: 'preferredDate', index: 3 },
+              { name: 'preferredTime', index: 4 }
+            ];
+            
+            let startFieldIndex = 0;
+            for (const field of appointmentFields) {
+              if (!formData[field.name]) {
+                startFieldIndex = field.index;
+                break;
+              }
+            }
+            
+            // If we have some data, show a message
+            if (formData.fullName || formData.contact || formData.phone) {
+              addBotMessage('Great! I have some of your details already. Let me collect the remaining information.');
+            }
+            
             setShowForm(true);
-            setCurrentFormField(0);
+            setCurrentFormField(startFieldIndex);
           }, 800);
         }, 800);
       }, 500);
       
     } else if (lowerMessage.includes('callback')) {
-      // Handle callback request
-      if (formData.fullName && formData.contact && formData.phone) {
+      // Handle callback request - check for data from any previous flow
+      const callbackDataFromForm = {
+        name: formData.fullName || '',
+        phone: formData.phone || '',
+        email: formData.contact || '',
+        reason: '',
+        timing: ''
+      };
+      
+      // Find the first field that doesn't have data
+      const callbackFields = [
+        { name: 'name', index: 0 },
+        { name: 'email', index: 1 },
+        { name: 'phone', index: 2 },
+        { name: 'reason', index: 3 },
+        { name: 'timing', index: 4 }
+      ];
+      
+      let startFieldIndex = 0;
+      for (const field of callbackFields) {
+        if (!callbackDataFromForm[field.name]) {
+          startFieldIndex = field.index;
+          break;
+        }
+      }
+      
+      if (callbackDataFromForm.name || callbackDataFromForm.email || callbackDataFromForm.phone) {
         // Use existing details
-        await addBotMessage(`Perfect! I'll have our team call you at ${formData.phone}. Is there a specific reason you'd like us to call or a particular question you have?`);
-        
-        // Show callback form with pre-filled data
-        setCallbackData({
-          name: formData.fullName,
-          phone: formData.phone,
-          email: formData.contact,
-          reason: '',
-          timing: ''
-        });
-        setCurrentCallbackField(2); // Skip name and phone, start with reason
+        await addBotMessage(`Perfect! I have some of your details already. Let me collect the remaining information.`);
+        setCallbackData(callbackDataFromForm);
+        setCurrentCallbackField(startFieldIndex);
         setShowCallbackForm(true);
         setShowTreatmentChat(false);
       } else {
@@ -1286,19 +1392,36 @@ const BotBuilder = ({ userProfile }) => {
       // Reset other UI states first
       resetUIStates();
       
-      // Use existing customer details from treatment form
-      if (formData.fullName && formData.contact && formData.phone) {
-        await addBotMessage(`Perfect! I'll have our team call you at ${formData.phone}. Is there a specific reason you'd like us to call or a particular question you have?`);
-        
-        // Show callback form with pre-filled data
-        setCallbackData({
-          name: formData.fullName,
-          phone: formData.phone,
-          email: formData.contact,
-          reason: '',
-          timing: ''
-        });
-        setCurrentCallbackField(2); // Skip name and phone, start with reason
+      // Use existing customer details from any previous flow
+      const callbackDataFromForm = {
+        name: formData.fullName || '',
+        phone: formData.phone || '',
+        email: formData.contact || '',
+        reason: '',
+        timing: ''
+      };
+      
+      // Find the first field that doesn't have data
+      const callbackFields = [
+        { name: 'name', index: 0 },
+        { name: 'email', index: 1 },
+        { name: 'phone', index: 2 },
+        { name: 'reason', index: 3 },
+        { name: 'timing', index: 4 }
+      ];
+      
+      let startFieldIndex = 0;
+      for (const field of callbackFields) {
+        if (!callbackDataFromForm[field.name]) {
+          startFieldIndex = field.index;
+          break;
+        }
+      }
+      
+      if (callbackDataFromForm.name || callbackDataFromForm.email || callbackDataFromForm.phone) {
+        await addBotMessage(`Perfect! I have some of your details already. Let me collect the remaining information.`);
+        setCallbackData(callbackDataFromForm);
+        setCurrentCallbackField(startFieldIndex);
         setShowCallbackForm(true);
       } else {
         // Start fresh callback flow
