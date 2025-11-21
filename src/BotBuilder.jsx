@@ -527,7 +527,23 @@ const BotBuilder = ({ userProfile }) => {
         
         setSelectedAvatar(config.avatar?.type || 'upload');
         setUploadedAvatar(config.avatar?.url || null);
-        setOpeningMessages(config.openingMessages || []);
+        
+        // Restore [Company Name] placeholder in opening messages if they were saved with actual company name
+        // This ensures the preview updates when company name changes
+        const loadedOpeningMessages = config.openingMessages || [];
+        const companyNameToRestore = savedCompanyName || (organization?.name || '');
+        const restoredOpeningMessages = loadedOpeningMessages.map(msg => {
+          // If message doesn't have placeholder but contains the saved company name, restore the placeholder
+          if (!msg.text.includes('[Company Name]') && companyNameToRestore && msg.text.includes(companyNameToRestore)) {
+            return {
+              ...msg,
+              text: msg.text.replace(new RegExp(companyNameToRestore.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '[Company Name]')
+            };
+          }
+          return msg;
+        });
+        setOpeningMessages(restoredOpeningMessages);
+        
         setAppointmentGreeting(config.appointmentGreeting || '');
         setPrivacyPolicyUrl(config.privacyPolicyUrl || '');
         
