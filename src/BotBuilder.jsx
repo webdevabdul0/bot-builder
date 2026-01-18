@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ChevronDown, ChevronUp, Calendar, MessageCircle, Phone, Stethoscope, FileText, Settings, User, Mail, Globe, Palette, Eye, Code, Save, Loader2, CheckCircle, XCircle, X } from 'lucide-react';
 import authService from './services/authService';
 import botConfigService from './services/botConfigService';
+import HelpBanner from './components/HelpBanner';
 
 const BotBuilder = ({ userProfile }) => {
   const [botName, setBotName] = useState('');
@@ -1565,6 +1566,9 @@ const BotBuilder = ({ userProfile }) => {
               </button>
         </div>
       </div>
+
+          {/* Help Banner */}
+          <HelpBanner />
 
           {/* Tab Content */}
           <div className="flex-1 p-4 sm:p-6 overflow-auto">
