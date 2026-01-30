@@ -119,11 +119,18 @@ const BotBuilder = ({ userProfile }) => {
   // Accordion states
   const [accordionStates, setAccordionStates] = useState({
     basicSettings: true,
+    aiAgent: false,
     appointmentFlow: false,
     treatmentFlow: false,
     googleCalendar: false,
     displaySettings: false
   });
+  
+  // AI Agent states
+  const [aiMode, setAiMode] = useState(false);
+  const [aiTestMessage, setAiTestMessage] = useState('');
+  const [aiTestResponse, setAiTestResponse] = useState(null);
+  const [isTestingAI, setIsTestingAI] = useState(false);
 
   // Avatar upload handler
   const handleAvatarUpload = (event) => {
@@ -348,6 +355,39 @@ const BotBuilder = ({ userProfile }) => {
 
 
   const saveBot = async () => {
+    // Validation: Check if companyWebsite is provided
+    if (!companyWebsite || companyWebsite.trim() === '') {
+      setSaveStatus('error');
+      setSaveMessage('Company Website is required. Please enter your practice website URL in the Basic Settings section.');
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 5000);
+      return;
+    }
+    
+    // Validate URL format
+    try {
+      const url = new URL(companyWebsite);
+      if (!url.protocol.startsWith('http')) {
+        setSaveStatus('error');
+        setSaveMessage('Invalid website URL format. Please enter a valid URL starting with http:// or https:// (e.g., https://yourpractice.com)');
+        setTimeout(() => {
+          setSaveStatus(null);
+          setSaveMessage('');
+        }, 5000);
+        return;
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage('Invalid website URL format. Please enter a valid URL starting with http:// or https:// (e.g., https://yourpractice.com)');
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 5000);
+      return;
+    }
+    
     setIsSaving(true);
     setSaveStatus(null);
     setSaveMessage('');
@@ -391,6 +431,8 @@ const BotBuilder = ({ userProfile }) => {
         googleCalendarConnected: googleCalendarConnected,
         // calendarStatus should be string or null, not an object
         calendarStatus: (calendarStatus && typeof calendarStatus === 'object') ? null : calendarStatus,
+        // AI Agent configuration
+        aiMode: aiMode,
         appointmentFlow: {
           fields: [
             { name: 'fullName', type: 'text', label: 'Full Name', required: true },
@@ -572,6 +614,8 @@ const BotBuilder = ({ userProfile }) => {
         const loadedCalendarStatus = config.calendarStatus;
         setCalendarStatus((loadedCalendarStatus && typeof loadedCalendarStatus === 'object') ? null : (loadedCalendarStatus || null));
         setTreatmentOptions(config.treatmentFlow?.options || []);
+        // Load AI Agent configuration
+        setAiMode(config.aiMode || false);
         // Set botId from loaded config (important for subsequent saves)
         if (config.botId) {
           setBotId(config.botId);
@@ -589,8 +633,12 @@ const BotBuilder = ({ userProfile }) => {
           setCompanyPhone(organization.contact || '');
           setCompanyOwnerEmail(userProfile?.email || '');
         }
-        setSaveStatus('error');
-        setSaveMessage(loadResult.error || 'Failed to load bot configuration');
+        // Don't show error for "no config found" - it's expected for new users
+        // Only show actual errors
+        if (loadResult.error && !loadResult.error.toLowerCase().includes('no config found')) {
+          setSaveStatus('error');
+          setSaveMessage(loadResult.error);
+        }
       }
     } catch (error) {
       console.error('Load bot config error:', error);
@@ -1655,7 +1703,7 @@ const BotBuilder = ({ userProfile }) => {
                     {/* Company Website */}
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-2 text-left">
-                        Company Website (Optional)
+                        Company Website <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="url"
@@ -1663,7 +1711,12 @@ const BotBuilder = ({ userProfile }) => {
                         onChange={(e) => setCompanyWebsite(e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
                         placeholder="https://yourcompany.com"
+                        required
                       />
+                      <p className="mt-1 text-xs text-gray-500">
+                        <Globe className="inline w-3 h-3 mr-1" />
+                        Required for AI agent to browse your website and answer patient questions
+                      </p>
                       <p className="text-xs text-gray-500 mt-1 text-left">Will be included in brochure emails</p>
                     </div>
 
