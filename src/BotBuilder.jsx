@@ -95,6 +95,12 @@ const BotBuilder = ({ userProfile }) => {
   const [treatmentUserEmail, setTreatmentUserEmail] = useState('');
   const [selectedTreatmentOption, setSelectedTreatmentOption] = useState(null);
   
+  // Email to developer states
+  const [developerEmail, setDeveloperEmail] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSendStatus, setEmailSendStatus] = useState(null); // 'success', 'error', null
+  const [emailMessage, setEmailMessage] = useState('');
+
   // State cleanup function to prevent UI conflicts
   const resetUIStates = () => {
     setShowOptions(false);
@@ -105,6 +111,90 @@ const BotBuilder = ({ userProfile }) => {
     setShowTreatmentChat(false);
     setCurrentFormField(-1);
     setCurrentCallbackField(-1);
+  };
+
+  // Send email to developer function
+  const sendEmailToDeveloper = async () => {
+    // Validate email
+    if (!developerEmail || !developerEmail.trim()) {
+      setEmailSendStatus('error');
+      setEmailMessage('Please enter an email address');
+      setTimeout(() => {
+        setEmailSendStatus(null);
+        setEmailMessage('');
+      }, 3000);
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(developerEmail)) {
+      setEmailSendStatus('error');
+      setEmailMessage('Please enter a valid email address');
+      setTimeout(() => {
+        setEmailSendStatus(null);
+        setEmailMessage('');
+      }, 3000);
+      return;
+    }
+
+    // Check if script is generated
+    if (!generatedScript) {
+      setEmailSendStatus('error');
+      setEmailMessage('Please save your bot configuration first to generate the script');
+      setTimeout(() => {
+        setEmailSendStatus(null);
+        setEmailMessage('');
+      }, 5000);
+      return;
+    }
+
+    setIsSendingEmail(true);
+    setEmailSendStatus(null);
+    setEmailMessage('');
+
+    try {
+      // n8n webhook URL for sending widget code via email
+      const n8nWebhookUrl = 'https://n8n.flossly.ai/webhook/email-widget-code';
+      
+      const response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: developerEmail,
+          widgetScript: generatedScript,
+          botName: botName,
+          companyName: companyName,
+          botId: botId
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setEmailSendStatus('success');
+        setEmailMessage('Email sent successfully! ✅');
+        setDeveloperEmail(''); // Clear the email field
+        setTimeout(() => {
+          setEmailSendStatus(null);
+          setEmailMessage('');
+        }, 5000);
+      } else {
+        throw new Error(data.message || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setEmailSendStatus('error');
+      setEmailMessage('Failed to send email. Please try again.');
+      setTimeout(() => {
+        setEmailSendStatus(null);
+        setEmailMessage('');
+      }, 5000);
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   // Pre-populate fields from user profile and load existing bot config
@@ -2757,6 +2847,53 @@ const BotBuilder = ({ userProfile }) => {
                 <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 border border-gray-200 mb-8">
                   <div className="text-center mb-8">
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">Add your Chatbot to your website</h2>
+                    
+                    {/* Email to Developer Section */}
+                    <div className="max-w-2xl mx-auto mb-6">
+                      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                        <input
+                          type="email"
+                          value={developerEmail}
+                          onChange={(e) => setDeveloperEmail(e.target.value)}
+                          placeholder="Email the code and instructions to your web developer or agency"
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          disabled={isSendingEmail}
+                        />
+                        <button
+                          onClick={sendEmailToDeveloper}
+                          disabled={isSendingEmail}
+                          className={`px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200 font-medium text-sm whitespace-nowrap flex items-center justify-center gap-2 ${
+                            isSendingEmail ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          {isSendingEmail ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            'Send'
+                          )}
+                        </button>
+                      </div>
+                      
+                      {/* Success/Error Message Snackbar */}
+                      {emailSendStatus && (
+                        <div className={`mt-3 p-3 rounded-lg flex items-center gap-2 text-sm font-medium ${
+                          emailSendStatus === 'success' 
+                            ? 'bg-green-50 text-green-700 border border-green-200' 
+                            : 'bg-red-50 text-red-700 border border-red-200'
+                        }`}>
+                          {emailSendStatus === 'success' ? (
+                            <CheckCircle className="w-5 h-5" />
+                          ) : (
+                            <XCircle className="w-5 h-5" />
+                          )}
+                          {emailMessage}
+                        </div>
+                      )}
+                    </div>
+
                     <p className="text-gray-600 text-base sm:text-lg mb-4">
                       Copy and paste this code before the <code className="bg-gray-100 px-2 py-1 rounded text-sm">&lt;/body&gt;</code> tag on your website
                     </p>
