@@ -431,8 +431,7 @@ const BotBuilder = ({ userProfile }) => {
         googleCalendarConnected: googleCalendarConnected,
         // calendarStatus should be string or null, not an object
         calendarStatus: (calendarStatus && typeof calendarStatus === 'object') ? null : calendarStatus,
-        // AI Agent configuration - automatically enabled if website is provided
-        aiMode: companyWebsite && companyWebsite.trim() !== '' ? true : aiMode,
+        // AI Agent is always enabled when website is present (no aiMode parameter needed)
         appointmentFlow: {
           fields: [
             { name: 'fullName', type: 'text', label: 'Full Name', required: true },
