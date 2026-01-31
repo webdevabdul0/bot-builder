@@ -168,7 +168,10 @@ const BotBuilder = ({ userProfile }) => {
       // n8n webhook URL for sending widget code via email
       const n8nWebhookUrl = 'https://n8n.flossly.ai/webhook/email-widget-code';
       
-      // Send raw script - n8n will display it in <pre><code> tags which email clients respect
+      // HTML encode the script so Gmail doesn't strip <script> tags
+      // This makes <script> become &lt;script&gt; which Gmail will display as text
+      const htmlEncodedScript = escapeHtml(generatedScript);
+      
       const response = await fetch(n8nWebhookUrl, {
         method: 'POST',
         headers: {
@@ -176,7 +179,7 @@ const BotBuilder = ({ userProfile }) => {
         },
         body: JSON.stringify({
           email: developerEmail,
-          widgetScript: generatedScript,  // Send RAW script (not escaped) - <pre><code> will handle display
+          widgetScript: htmlEncodedScript,  // Send HTML-encoded script for Gmail display
           botName: botName || 'Your Bot',
           companyName: companyName || 'Your Company',
           botId: botId,
