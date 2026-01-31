@@ -1,0 +1,128 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": false,\n  \"message\": \"Failed to send email\",\n  \"error\": $json.error || \"Unknown error\",\n  \"timestamp\": $now.toISO()\n} }}",
+        "options": {
+          "responseCode": 500,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "75bf69f7-cc6c-4bb5-ba4e-615e0d89641f",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": \"Email sent successfully\",\n  \"recipient\": $json.email,\n  \"timestamp\": $now.toISO()\n} }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "936660fa-7056-45be-ac29-2d179461e91c",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.email }}",
+        "subject": "Your Flossly Chatbot Installation Code",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            line-height: 1.6;\n            color: #333;\n            max-width: 600px;\n            margin: 0 auto;\n            padding: 20px;\n        }\n        .header {\n            background-color: #2563eb;\n            color: white;\n            padding: 20px;\n            text-align: center;\n            border-radius: 8px 8px 0 0;\n        }\n        .content {\n            background-color: #f9fafb;\n            padding: 30px;\n            border: 1px solid #e5e7eb;\n        }\n        .instructions {\n            background-color: white;\n            padding: 20px;\n            border-left: 4px solid #2563eb;\n            margin: 20px 0;\n        }\n        .code-block {\n            background-color: #1f2937;\n            color: #f3f4f6;\n            padding: 20px;\n            border-radius: 6px;\n            overflow-x: auto;\n            font-family: 'Courier New', monospace;\n            font-size: 13px;\n            line-height: 1.5;\n            margin: 20px 0;\n            white-space: pre-wrap;\n            word-wrap: break-word;\n        }\n        .step {\n            margin: 15px 0;\n            padding-left: 30px;\n            position: relative;\n        }\n        .step:before {\n            content: '✓';\n            position: absolute;\n            left: 0;\n            top: 0;\n            background-color: #10b981;\n            color: white;\n            width: 20px;\n            height: 20px;\n            border-radius: 50%;\n            text-align: center;\n            line-height: 20px;\n            font-size: 12px;\n        }\n        .important {\n            background-color: #fef3c7;\n            border-left: 4px solid #f59e0b;\n            padding: 15px;\n            margin: 20px 0;\n        }\n        .footer {\n            text-align: center;\n            padding: 20px;\n            color: #6b7280;\n            font-size: 14px;\n        }\n        code {\n            background-color: #e5e7eb;\n            padding: 2px 6px;\n            border-radius: 3px;\n            font-family: 'Courier New', monospace;\n        }\n        .bot-details {\n            background-color: #eff6ff;\n            border-left: 4px solid #3b82f6;\n            padding: 15px;\n            margin: 20px 0;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"header\">\n        <h1>🤖 Flossly Chatbot Installation</h1>\n        <p>Your AI-powered chatbot is ready to go live!</p>\n    </div>\n    \n    <div class=\"content\">\n        <h2>Hello! 👋</h2>\n        <p>Thank you for choosing Flossly! Below you'll find everything you need to add your intelligent chatbot to your website.</p>\n        \n        <div class=\"bot-details\">\n            <h3>📋 Your Bot Details</h3>\n            <p><strong>Bot Name:</strong> {{ $json.body.botName }}</p>\n            <p><strong>Company:</strong> {{ $json.body.companyName }}</p>\n            <p><strong>Bot ID:</strong> <code>{{ $json.body.botId }}</code></p>\n        </div>\n        \n        <div class=\"instructions\">\n            <h3>📋 Installation Instructions</h3>\n            <p>Follow these simple steps to integrate your chatbot:</p>\n            \n            <div class=\"step\">\n                <strong>Step 1:</strong> Open your website's HTML file or template\n            </div>\n            \n            <div class=\"step\">\n                <strong>Step 2:</strong> Locate the closing <code>&lt;/body&gt;</code> tag at the bottom of your HTML\n            </div>\n            \n            <div class=\"step\">\n                <strong>Step 3:</strong> Copy the code snippet below\n            </div>\n            \n            <div class=\"step\">\n                <strong>Step 4:</strong> Paste the code <strong>just before</strong> the <code>&lt;/body&gt;</code> tag\n            </div>\n            \n            <div class=\"step\">\n                <strong>Step 5:</strong> Save your file and refresh your website\n            </div>\n        </div>\n        \n        <div class=\"important\">\n            <strong>⚠️ Important:</strong> Make sure to place this code before the closing <code>&lt;/body&gt;</code> tag, not after it. This ensures the chatbot loads properly on your website.\n        </div>\n        \n        <h3>💻 Your Chatbot Code</h3>\n        <p>Copy and paste this entire code snippet:</p>\n        \n        <div class=\"code-block\">{{ $json.body.widgetScript }}</div>\n        \n        <div class=\"instructions\">\n            <h3>🎨 What Happens Next?</h3>\n            <p>Once you've added the code:</p>\n            <ul>\n                <li>Your chatbot widget will appear on your website</li>\n                <li>Visitors can click the chat icon to start a conversation</li>\n                <li>The bot will automatically respond based on your configuration</li>\n                <li>All conversations are tracked in your Flossly dashboard</li>\n            </ul>\n        </div>\n        \n        <div class=\"important\">\n            <strong>💡 Pro Tip:</strong> Test your chatbot after installation to ensure everything works correctly. You can manage and update your bot settings anytime from the <a href=\"https://dev.flossly.ai/botbuilder\" style=\"color: #2563eb;\">Flossly Dashboard</a>.\n        </div>\n    </div>\n    \n    <div class=\"footer\">\n        <p>This email was sent from Flossly Bot Builder</p>\n        <p>Need help? Contact us at support@flossly.ai</p>\n    </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "1c54adf6-7029-4d7f-a1d1-7583d8cecd8f",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "webhookId": "aab6739f-86b8-401a-b72e-a8ead2a12a80",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lcM6w6wYYceaWQ0B",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-widget-code",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1c3d93b1-18aa-40dc-aa99-5f782b1ebcc8",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "email-widget-code"
+    }
+  ],
+  "connections": {
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e70ba3498302962d65d783a5ef4d2ee4e2f2508fa4bda2cb1810a41f99829c3"
+  }
+}
