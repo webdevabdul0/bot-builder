@@ -113,6 +113,17 @@ const BotBuilder = ({ userProfile }) => {
     setCurrentCallbackField(-1);
   };
 
+  // HTML escape utility function for safe email rendering
+  const escapeHtml = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
   // Send email to developer function
   const sendEmailToDeveloper = async () => {
     // Validate email
@@ -157,6 +168,9 @@ const BotBuilder = ({ userProfile }) => {
       // n8n webhook URL for sending widget code via email
       const n8nWebhookUrl = 'https://n8n.flossly.ai/webhook/email-widget-code';
       
+      // Escape the widget script for safe HTML rendering in email
+      const escapedWidgetScript = escapeHtml(generatedScript);
+      
       const response = await fetch(n8nWebhookUrl, {
         method: 'POST',
         headers: {
@@ -164,10 +178,13 @@ const BotBuilder = ({ userProfile }) => {
         },
         body: JSON.stringify({
           email: developerEmail,
-          widgetScript: generatedScript,
-          botName: botName,
-          companyName: companyName,
-          botId: botId
+          widgetScriptRaw: generatedScript,        // Raw version for copy-paste functionality
+          widgetScriptEscaped: escapedWidgetScript, // Escaped version for email display
+          widgetScript: escapedWidgetScript,        // Default to escaped (for backward compatibility)
+          botName: botName || 'Your Bot',
+          companyName: companyName || 'Your Company',
+          botId: botId,
+          timestamp: new Date().toISOString()
         })
       });
 
