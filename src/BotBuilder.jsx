@@ -567,13 +567,14 @@ const BotBuilder = ({ userProfile }) => {
       
       if (saveResult.success) {
         // Also save to VPS cache so widget can load it
+        // IMPORTANT: Send the full botConfig we prepared (not saveResult.config which may be incomplete)
         try {
           await fetch(`https://widget.flossly.ai/api/bot-config/${botConfig.botId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(saveResult.config || botConfig)
+            body: JSON.stringify(botConfig)  // Send full config, not saveResult.config
           });
           console.log('Bot config also saved to VPS cache');
         } catch (vpsError) {
