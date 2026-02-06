@@ -31,28 +31,10 @@ app.use('/api', createProxyMiddleware({
       return 'https://app.flossly.ai';
     }
     
-    // For other auth requests (like /auth/profile), decode the ACCESS token from Authorization header
+    // For other auth requests (like /auth/profile), hardcoded to PRODUCTION
     if (req.url.includes('/auth/') && req.headers.authorization) {
-      try {
-        // Extract token from "Bearer <token>"
-        const accessToken = req.headers.authorization.replace('Bearer ', '');
-        
-        // Decode JWT without verification (just to read the payload)
-        const payload = JSON.parse(
-          Buffer.from(accessToken.split('.')[1], 'base64').toString()
-        );
-        
-        // Route based on environment field in token
-        if (payload.environment === 'production') {
-          console.log('🔵 Routing to PRODUCTION API (from access token): https://app.flossly.ai');
-          return 'https://app.flossly.ai';
-        } else {
-          console.log('🟢 Routing to DEV API (from access token): https://dev.flossly.ai');
-          return 'https://dev.flossly.ai';
-        }
-      } catch (error) {
-        console.error('Failed to decode access token, using default dev.flossly.ai:', error.message);
-      }
+      console.log('🔵 Routing to PRODUCTION API (HARDCODED): https://app.flossly.ai');
+      return 'https://app.flossly.ai';
     }
     
     // For other requests, use environment variable or default to dev
