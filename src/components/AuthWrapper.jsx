@@ -103,6 +103,10 @@ const AuthWrapper = () => {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Flossly Bot Builder
             </h1>
+            {/* Version Indicator */}
+            <div className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+              ✅ v2.1 - Prod/Dev Router Active
+            </div>
           </div>
           
           <Loader2 className="mx-auto h-12 w-12 text-blue-600 animate-spin mb-4" />
