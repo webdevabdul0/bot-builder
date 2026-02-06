@@ -25,25 +25,10 @@ app.use('/api', createProxyMiddleware({
     'Content-Type': 'application/json',
   },
   router: (req) => {
-    // For auth/exchangeShortToken, decode the SHORT token to determine environment
+    // For auth/exchangeShortToken, hardcoded to PRODUCTION
     if (req.url.includes('/auth/exchangeShortToken') && req.body?.shortToken) {
-      try {
-        // Decode JWT without verification (just to read the payload)
-        const payload = JSON.parse(
-          Buffer.from(req.body.shortToken.split('.')[1], 'base64').toString()
-        );
-        
-        // Route based on environment field in token
-        if (payload.environment === 'production') {
-          console.log('🔵 Routing to PRODUCTION API: https://app.flossly.ai');
-          return 'https://app.flossly.ai';
-        } else {
-          console.log('🟢 Routing to DEV API: https://dev.flossly.ai');
-          return 'https://dev.flossly.ai';
-        }
-      } catch (error) {
-        console.error('Failed to decode short token, using default dev.flossly.ai:', error.message);
-      }
+      console.log('🔵 Routing to PRODUCTION API (HARDCODED): https://app.flossly.ai');
+      return 'https://app.flossly.ai';
     }
     
     // For other auth requests (like /auth/profile), decode the ACCESS token from Authorization header
