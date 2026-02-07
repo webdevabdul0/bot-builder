@@ -1,11 +1,54 @@
-// Use localhost proxy in development, production API in production
-const API_BASE_URL = import.meta.env.DEV 
-  ? 'http://localhost:3001/api'  // Local proxy server
-  : 'https://builder.flossly.ai/api';  // Production API
-
 class AuthService {
   constructor() {
     this.accessToken = this.getStoredToken();
+    this.apiBaseUrl = this.getStoredApiBase();
+  }
+
+  /**
+   * Decode JWT token to extract environment
+   * @param {string} token - JWT token to decode
+   * @returns {string} environment value ('production' or 'development')
+   */
+  decodeTokenEnvironment(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.environment || 'development';
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+      return 'development';
+    }
+  }
+
+  /**
+   * Get API base URL from sessionStorage or default
+   * @returns {string} API base URL
+   */
+  getStoredApiBase() {
+    try {
+      const stored = sessionStorage.getItem('flossy_api_base');
+      return stored || 'https://dev.flossly.ai/api';
+    } catch (error) {
+      console.error('Failed to get stored API base:', error);
+      return 'https://dev.flossly.ai/api';
+    }
+  }
+
+  /**
+   * Store API base URL in sessionStorage
+   * @param {string} environment - Environment from token ('production' or 'development')
+   */
+  storeApiBase(environment) {
+    try {
+      const apiBase = environment === 'production' 
+        ? 'https://app.flossly.ai/api'
+        : 'https://dev.flossly.ai/api';
+      
+      sessionStorage.setItem('flossy_api_base', apiBase);
+      this.apiBaseUrl = apiBase;
+      console.log(`✅ API Base URL set to: ${apiBase} (environment: ${environment})`);
+    } catch (error) {
+      console.error('Failed to store API base:', error);
+    }
   }
 
   /**
@@ -15,7 +58,11 @@ class AuthService {
    */
   async exchangeShortToken(shortToken) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/exchangeShortToken`, {
+      // Decode environment from short token and set API base
+      const environment = this.decodeTokenEnvironment(shortToken);
+      this.storeApiBase(environment);
+
+      const response = await fetch(`${this.apiBaseUrl}/auth/exchangeShortToken`, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -60,7 +107,7 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      const response = await fetch(`${this.apiBaseUrl}/auth/profile`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -122,7 +169,9 @@ class AuthService {
   clearAuth() {
     try {
       sessionStorage.removeItem('flossy_access_token');
+      sessionStorage.removeItem('flossy_api_base');
       this.accessToken = null;
+      this.apiBaseUrl = 'https://dev.flossly.ai/api';
     } catch (error) {
       console.error('Failed to clear auth data:', error);
     }

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Token Routing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+    .token-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result {
+      background: #f8f9fa;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border-left: 4px solid #007bff;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .success {
+      border-left-color: #28a745;
+      background: #d4edda;
+    }
+    .error {
+      border-left-color: #dc3545;
+      background: #f8d7da;
+    }
+    .info {
+      border-left-color: #17a2b8;
+      background: #d1ecf1;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Token Routing Test</h1>
+  
+  <div class="test-section">
+    <h2>1. Test Token Decoding</h2>
+    <p>Your production token from <code>app.flossly.ai</code>:</p>
+    <textarea id="prodToken" class="token-input" rows="3">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjY5LCJvcmdJZCI6Mjk5LCJyb2xlSWQiOjEsInB1cnBvc2UiOiJ0aGlyZF9wYXJ0eV9yZWRpcmVjdCIsImVudmlyb25tZW50IjoicHJvZHVjdGlvbiIsImlhdCI6MTc3MDQ0MzY2NywiZXhwIjoxNzcwNDQzNzI3fQ.rB1z1nIAzAta0SAPE_VQPQtwU_2gwDyesjP0U_ngSZE</textarea>
+    <button onclick="testDecode('prodToken')">Decode Production Token</button>
+    
+    <div id="decodeResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. Test API Base URL Storage</h2>
+    <button onclick="testProdEnvironment()">Set Production Environment</button>
+    <button onclick="testDevEnvironment()">Set Dev Environment</button>
+    <button onclick="checkStoredApiBase()">Check Stored API Base</button>
+    <button onclick="clearStorage()">Clear Storage</button>
+    
+    <div id="storageResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Test Exchange Token (Simulated)</h2>
+    <p>This simulates the token exchange flow:</p>
+    <button onclick="simulateTokenExchange()">Simulate Token Exchange</button>
+    
+    <div id="exchangeResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4. Current Session State</h2>
+    <button onclick="showSessionState()">Show Session State</button>
+    
+    <div id="sessionResult" class="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Token decoding function (same as in authService)
+    function decodeTokenEnvironment(token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload;
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+        return null;
+      }
+    }
+
+    function testDecode(inputId) {
+      const token = document.getElementById(inputId).value.trim();
+      const result = document.getElementById('decodeResult');
+      
+      const payload = decodeTokenEnvironment(token);
+      
+      if (payload) {
+        result.className = 'result success';
+        result.style.display = 'block';
+        result.textContent = '✅ Token Decoded Successfully:\n\n' + JSON.stringify(payload, null, 2);
+      } else {
+        result.className = 'result error';
+        result.style.display = 'block';
+        result.textContent = '❌ Failed to decode token';
+      }
+    }
+
+    function storeApiBase(environment) {
+      const apiBase = environment === 'production' 
+        ? 'https://app.flossly.ai/api'
+        : 'https://dev.flossly.ai/api';
+      
+      sessionStorage.setItem('flossy_api_base', apiBase);
+      return apiBase;
+    }
+
+    function testProdEnvironment() {
+      const apiBase = storeApiBase('production');
+      const result = document.getElementById('storageResult');
+      result.className = 'result success';
+      result.style.display = 'block';
+      result.textContent = `✅ Production API Base stored:\n${apiBase}`;
+    }
+
+    function testDevEnvironment() {
+      const apiBase = storeApiBase('development');
+      const result = document.getElementById('storageResult');
+      result.className = 'result info';
+      result.style.display = 'block';
+      result.textContent = `✅ Development API Base stored:\n${apiBase}`;
+    }
+
+    function checkStoredApiBase() {
+      const stored = sessionStorage.getItem('flossy_api_base');
+      const result = document.getElementById('storageResult');
+      
+      if (stored) {
+        result.className = 'result info';
+        result.style.display = 'block';
+        result.textContent = `📍 Current API Base:\n${stored}`;
+      } else {
+        result.className = 'result error';
+        result.style.display = 'block';
+        result.textContent = '❌ No API Base stored in sessionStorage';
+      }
+    }
+
+    function clearStorage() {
+      sessionStorage.removeItem('flossy_api_base');
+      sessionStorage.removeItem('flossy_access_token');
+      const result = document.getElementById('storageResult');
+      result.className = 'result info';
+      result.style.display = 'block';
+      result.textContent = '🗑️ Storage cleared';
+    }
+
+    function simulateTokenExchange() {
+      const token = document.getElementById('prodToken').value.trim();
+      const result = document.getElementById('exchangeResult');
+      
+      // Decode the short token
+      const payload = decodeTokenEnvironment(token);
+      
+      if (!payload) {
+        result.className = 'result error';
+        result.style.display = 'block';
+        result.textContent = '❌ Invalid token';
+        return;
+      }
+
+      // Extract environment
+      const environment = payload.environment || 'development';
+      
+      // Store API base
+      const apiBase = storeApiBase(environment);
+      
+      // Show the flow
+      result.className = 'result success';
+      result.style.display = 'block';
+      result.textContent = `✅ Token Exchange Flow Simulated:
+
+Step 1: Decoded short token
+  - userId: ${payload.userId}
+  - orgId: ${payload.orgId}
+  - environment: ${environment}
+  - purpose: ${payload.purpose}
+
+Step 2: Determined API Base
+  - Environment: ${environment}
+  - API Base: ${apiBase}
+
+Step 3: Would call:
+  - POST ${apiBase}/auth/exchangeShortToken
+  - With body: { shortToken: "..." }
+
+Step 4: After getting access token, would call:
+  - GET ${apiBase}/auth/profile
+  - With header: Authorization: Bearer <access_token>
+
+✅ All API calls will use: ${apiBase}`;
+    }
+
+    function showSessionState() {
+      const apiBase = sessionStorage.getItem('flossy_api_base');
+      const accessToken = sessionStorage.getItem('flossy_access_token');
+      const result = document.getElementById('sessionResult');
+      
+      result.className = 'result info';
+      result.style.display = 'block';
+      result.textContent = `📊 Current Session State:
+
+API Base URL: ${apiBase || 'Not set'}
+Access Token: ${accessToken ? accessToken.substring(0, 50) + '...' : 'Not set'}
+
+SessionStorage Contents:
+${JSON.stringify({
+  flossy_api_base: apiBase,
+  flossy_access_token: accessToken ? '<token present>' : null
+}, null, 2)}`;
+    }
+
+    // Auto-load session state on page load
+    window.addEventListener('load', () => {
+      showSessionState();
+    });
+  </script>
+</body>
+</html>
