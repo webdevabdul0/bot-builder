@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Check X-Flossy-Environment Header</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .test { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    .success { background: #d4edda; border-left: 4px solid #28a745; }
+    .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+    button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; margin: 5px; }
+    pre { background: #282c34; color: #abb2bf; padding: 10px; overflow-x: auto; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Check X-Flossy-Environment Header</h1>
+  
+  <div class="test">
+    <h3>Step 1: Check SessionStorage</h3>
+    <button onclick="checkSessionStorage()">Check SessionStorage</button>
+    <div id="sessionResult"></div>
+  </div>
+
+  <div class="test">
+    <h3>Step 2: Test API Call with Header</h3>
+    <p>Paste your access token:</p>
+    <textarea id="accessToken" style="width: 100%; height: 60px; font-family: monospace; font-size: 11px;"></textarea>
+    <br>
+    <button onclick="testProfileAPI()">Test /auth/profile with Header</button>
+    <div id="apiResult"></div>
+  </div>
+
+  <div class="test">
+    <h3>Step 3: Monitor Network Request</h3>
+    <p>Instructions:</p>
+    <ol>
+      <li>Open DevTools (F12)</li>
+      <li>Go to Network tab</li>
+      <li>Click "Test API Call" button above</li>
+      <li>Click on the request to <code>/auth/profile</code></li>
+      <li>Look at "Request Headers" section</li>
+      <li>Verify <code>X-Flossy-Environment: production</code> is present</li>
+    </ol>
+  </div>
+
+  <script>
+    function checkSessionStorage() {
+      const result = document.getElementById('sessionResult');
+      const env = sessionStorage.getItem('flossy_environment');
+      const token = sessionStorage.getItem('flossy_access_token');
+      
+      result.innerHTML = `
+        <h4>SessionStorage Contents:</h4>
+        <pre>flossy_environment: ${env || 'NOT SET'}
+flossy_access_token: ${token ? token.substring(0, 50) + '...' : 'NOT SET'}</pre>
+        ${env === 'production' ? '<p style="color: green;">✅ Environment is set to production</p>' : '<p style="color: red;">❌ Environment is not production</p>'}
+      `;
+    }
+
+    async function testProfileAPI() {
+      const result = document.getElementById('apiResult');
+      const token = document.getElementById('accessToken').value.trim() || sessionStorage.getItem('flossy_access_token');
+      const env = sessionStorage.getItem('flossy_environment') || 'development';
+      
+      if (!token) {
+        result.innerHTML = '<p style="color: red;">❌ No access token found</p>';
+        return;
+      }
+
+      result.innerHTML = '<p>Testing API call...</p>';
+
+      try {
+        const url = 'https://builder.flossly.ai/api/auth/profile';
+        
+        console.log('Making request to:', url);
+        console.log('With headers:', {
+          'Authorization': 'Bearer ' + token.substring(0, 20) + '...',
+          'X-Flossy-Environment': env
+        });
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Flossy-Environment': env
+          }
+        });
+
+        const data = await response.json();
+
+        result.className = 'test ' + (data.success ? 'success' : 'error');
+        result.innerHTML = `
+          <h4>API Response:</h4>
+          <p><strong>Status:</strong> ${response.status}</p>
+          <p><strong>Environment sent:</strong> ${env}</p>
+          <p><strong>Success:</strong> ${data.success ? '✅ YES' : '❌ NO'}</p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+          <p style="margin-top: 15px;"><strong>Check DevTools Network tab to see the request headers!</strong></p>
+        `;
+      } catch (error) {
+        result.className = 'test error';
+        result.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+      }
+    }
+
+    // Auto-check on load
+    window.addEventListener('load', checkSessionStorage);
+  </script>
+</body>
+</html>

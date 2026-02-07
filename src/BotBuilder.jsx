@@ -516,6 +516,7 @@ const BotBuilder = ({ userProfile }) => {
         name: botName || 'Bot',
         companyName: companyName || 'Your Company',
         avatar: getCurrentAvatar(),
+        environment: sessionStorage.getItem('flossy_environment') || 'development', // Environment from login
         openingMessages: openingMessages.map(msg => ({
           ...msg,
           text: msg.text.replace('[Company Name]', companyName || 'Your Company')
