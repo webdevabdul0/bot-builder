@@ -1,21 +1,11 @@
+// Use localhost proxy in development, production API in production
+const API_BASE_URL = import.meta.env.DEV 
+  ? 'http://localhost:3001/api'  // Local proxy server
+  : 'https://builder.flossly.ai/api';  // Production API
+
 class BotConfigService {
   constructor() {
     this.accessToken = this.getStoredToken();
-    this.apiBaseUrl = this.getStoredApiBase();
-  }
-
-  /**
-   * Get API base URL from sessionStorage
-   * @returns {string} API base URL
-   */
-  getStoredApiBase() {
-    try {
-      const stored = sessionStorage.getItem('flossy_api_base');
-      return stored || 'https://dev.flossly.ai/api';
-    } catch (error) {
-      console.error('Failed to get stored API base:', error);
-      return 'https://dev.flossly.ai/api';
-    }
   }
 
   /**
@@ -38,11 +28,10 @@ class BotConfigService {
   }
   
   /**
-   * Refresh access token and API base from storage (call this if token might have been updated)
+   * Refresh access token from storage (call this if token might have been updated)
    */
   refreshToken() {
     this.accessToken = this.getStoredToken();
-    this.apiBaseUrl = this.getStoredApiBase();
   }
 
   /**
@@ -65,7 +54,8 @@ class BotConfigService {
       // Use correct endpoint: /api/chatbot/save
       // Note: userId and organizationId are automatically set from logged-in user
       // Only 'name' is required, botId is optional (auto-generated if not provided)
-      const response = await fetch(`${this.apiBaseUrl}/chatbot/save`, {
+      // Call through builder.flossly.ai which acts as a proxy
+      const response = await fetch(`${API_BASE_URL}/chatbot/save`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -119,7 +109,8 @@ class BotConfigService {
       // Use correct endpoint: /api/chatbot/get
       // Note: Gets config by organizationId (from logged-in user), not by botId
       // If botId is provided, we'll filter by it after getting the config
-      const response = await fetch(`${this.apiBaseUrl}/chatbot/get`, {
+      // Call through builder.flossly.ai which acts as a proxy
+      const response = await fetch(`${API_BASE_URL}/chatbot/get`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
