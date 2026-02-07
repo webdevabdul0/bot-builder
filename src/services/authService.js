@@ -30,9 +30,17 @@ class AuthService {
    */
   async exchangeShortToken(shortToken) {
     try {
-      // Decode environment for logging (the backend will also decode it for routing)
+      // Decode environment from short token and store it
+      // We need this because the access token won't have the environment field
       const environment = this.decodeTokenEnvironment(shortToken);
       console.log(`🔑 Exchanging token for environment: ${environment}`);
+      
+      // Store environment in sessionStorage for future API calls
+      try {
+        sessionStorage.setItem('flossy_environment', environment);
+      } catch (err) {
+        console.error('Failed to store environment:', err);
+      }
 
       // Call through builder.flossly.ai which acts as a proxy
       // The VPS server will decode the token and route to the correct backend
@@ -81,8 +89,11 @@ class AuthService {
     }
 
     try {
+      // Get stored environment (from short token exchange)
+      const environment = sessionStorage.getItem('flossy_environment') || 'development';
+      
       // Call through builder.flossly.ai which acts as a proxy
-      // The VPS server will decode the access token and route to the correct backend
+      // Pass environment as a custom header so VPS server knows where to route
       const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         method: 'GET',
         mode: 'cors',
@@ -90,6 +101,7 @@ class AuthService {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'X-Flossy-Environment': environment, // Tell server which API to use
         }
       });
 
@@ -145,6 +157,7 @@ class AuthService {
   clearAuth() {
     try {
       sessionStorage.removeItem('flossy_access_token');
+      sessionStorage.removeItem('flossy_environment');
       this.accessToken = null;
     } catch (error) {
       console.error('Failed to clear auth data:', error);

@@ -51,6 +51,9 @@ class BotConfigService {
     }
 
     try {
+      // Get stored environment
+      const environment = sessionStorage.getItem('flossy_environment') || 'development';
+      
       // Use correct endpoint: /api/chatbot/save
       // Note: userId and organizationId are automatically set from logged-in user
       // Only 'name' is required, botId is optional (auto-generated if not provided)
@@ -60,6 +63,7 @@ class BotConfigService {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json',
+          'X-Flossy-Environment': environment,
         },
         body: JSON.stringify(botConfig)
       });
@@ -106,6 +110,9 @@ class BotConfigService {
     }
 
     try {
+      // Get stored environment
+      const environment = sessionStorage.getItem('flossy_environment') || 'development';
+      
       // Use correct endpoint: /api/chatbot/get
       // Note: Gets config by organizationId (from logged-in user), not by botId
       // If botId is provided, we'll filter by it after getting the config
@@ -115,6 +122,7 @@ class BotConfigService {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json',
+          'X-Flossy-Environment': environment,
         }
       });
 
