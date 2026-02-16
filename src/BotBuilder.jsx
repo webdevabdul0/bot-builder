@@ -16,9 +16,14 @@ const BotBuilder = ({ userProfile }) => {
     { id: uuidv4(), text: 'Would you like to get booked in with one of our dentists?', showAvatar: true }
   ]);
   const [appointmentOptions] = useState([
-    { id: uuidv4(), text: 'Request an appointment', type: 'appointment' },
-    { id: uuidv4(), text: 'Learn about treatments', type: 'treatment' },
-    { id: uuidv4(), text: 'Request a callback', type: 'callback' }
+    { id: uuidv4(), text: 'I am a NEW PATIENT and would like to send an ENQUIRY', type: 'callback' },
+    { id: uuidv4(), text: 'I am interested in INVISALIGN® (custom-made transparent removable clear \'aligners\')', type: 'treatment', treatmentName: 'INVISALIGN®' },
+    { id: uuidv4(), text: 'I am interested in DENTAL IMPLANTS', type: 'treatment', treatmentName: 'DENTAL IMPLANTS' },
+    { id: uuidv4(), text: 'I am interested in ORTHODONTICS', type: 'treatment', treatmentName: 'ORTHODONTICS' },
+    { id: uuidv4(), text: 'I am interested in COSMETIC DENTISTRY', type: 'treatment', treatmentName: 'COSMETIC DENTISTRY' },
+    { id: uuidv4(), text: 'I would like to enquire about an OTHER dental treatment or service', type: 'treatment', treatmentName: 'OTHER' },
+    { id: uuidv4(), text: 'I need an EMERGENCY dental appointment', type: 'appointment', isEmergency: true },
+    { id: uuidv4(), text: 'I am an EXISTING PATIENT (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
   ]);
   const [appointmentGreeting, setAppointmentGreeting] = useState('Hello! 👋 I can help you book an appointment at our clinic.\nWhat\'s your full name?');
   // Confirmation messages (standardized - not configurable)
@@ -30,10 +35,11 @@ const BotBuilder = ({ userProfile }) => {
   // Treatment Enquiry workflow states
   const treatmentGreeting = 'Hi! I\'m here to answer questions about our dental treatments. What treatment are you interested in learning more about?';
   const [treatmentOptions, setTreatmentOptions] = useState([
-    { id: uuidv4(), name: 'Teeth Whitening', description: 'Professional teeth whitening treatments for a brighter smile', brochureUrl: '' },
-    { id: uuidv4(), name: 'Invisalign', description: 'Clear aligners for straightening teeth discreetly', brochureUrl: '' },
-    { id: uuidv4(), name: 'Dental Implants', description: 'Permanent tooth replacement solutions', brochureUrl: '' },
-    { id: uuidv4(), name: 'General Checkup', description: 'Comprehensive dental examination and cleaning', brochureUrl: '' }
+    { id: uuidv4(), name: 'INVISALIGN®', description: 'Custom-made transparent removable clear aligners for straightening teeth discreetly', brochureUrl: '' },
+    { id: uuidv4(), name: 'DENTAL IMPLANTS', description: 'Permanent tooth replacement solutions', brochureUrl: '' },
+    { id: uuidv4(), name: 'ORTHODONTICS', description: 'Teeth straightening and bite correction treatments', brochureUrl: '' },
+    { id: uuidv4(), name: 'COSMETIC DENTISTRY', description: 'Aesthetic dental treatments for a beautiful smile', brochureUrl: '' },
+    { id: uuidv4(), name: 'OTHER', description: 'Other dental treatments or services', brochureUrl: '' }
   ]);
   const treatmentFollowUp = 'Would you like me to send you a detailed brochure via email or help you schedule a free consultation with our dentist?';
   
@@ -936,23 +942,70 @@ const BotBuilder = ({ userProfile }) => {
       }, 500);
     } else if (option.type === 'treatment') {
       setCurrentWorkflow('treatment');
-      setTimeout(() => {
-        setIsTyping(true);
-        setTimeout(() => {
-          setIsTyping(false);
-          setVisibleMessages(prev => [...prev, {
-            id: 'treatment-greeting',
-            text: treatmentGreeting,
-            showAvatar: true,
-            isBot: true
-          }]);
-          scrollToBottom();
-          
+      
+      // If a specific treatment was selected, skip to showing that treatment directly
+      if (option.treatmentName) {
+        // Find the treatment in the treatmentOptions
+        const treatment = treatmentOptions.find(opt => opt.name === option.treatmentName);
+        if (treatment) {
+          setSelectedTreatment(treatment);
           setTimeout(() => {
-            setShowTreatmentOptions(true);
+            setIsTyping(true);
+            setTimeout(() => {
+              setIsTyping(false);
+              setVisibleMessages(prev => [...prev, {
+                id: 'treatment-action-message',
+                text: `Great! You're interested in ${treatment.name}. How can I help you with this?`,
+                showAvatar: true,
+                isBot: true
+              }]);
+              scrollToBottom();
+              
+              setTimeout(() => {
+                setShowTreatmentChat(true);
+              }, 800);
+            }, 800);
+          }, 500);
+        } else {
+          // Fallback to showing all treatment options if not found
+          setTimeout(() => {
+            setIsTyping(true);
+            setTimeout(() => {
+              setIsTyping(false);
+              setVisibleMessages(prev => [...prev, {
+                id: 'treatment-greeting',
+                text: treatmentGreeting,
+                showAvatar: true,
+                isBot: true
+              }]);
+              scrollToBottom();
+              
+              setTimeout(() => {
+                setShowTreatmentOptions(true);
+              }, 800);
+            }, 800);
+          }, 500);
+        }
+      } else {
+        // No specific treatment, show all options
+        setTimeout(() => {
+          setIsTyping(true);
+          setTimeout(() => {
+            setIsTyping(false);
+            setVisibleMessages(prev => [...prev, {
+              id: 'treatment-greeting',
+              text: treatmentGreeting,
+              showAvatar: true,
+              isBot: true
+            }]);
+            scrollToBottom();
+            
+            setTimeout(() => {
+              setShowTreatmentOptions(true);
+            }, 800);
           }, 800);
-        }, 800);
-      }, 500);
+        }, 500);
+      }
     } else if (option.type === 'callback') {
       setCurrentWorkflow('callback');
       setTimeout(() => {
@@ -2170,7 +2223,7 @@ const BotBuilder = ({ userProfile }) => {
                                   value={option.name}
                                   onChange={(e) => updateTreatmentOption(option.id, 'name', e.target.value)}
                                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
-                                  placeholder="e.g., Teeth Whitening"
+                                  placeholder="e.g., INVISALIGN®"
                                 />
                               </div>
                               
