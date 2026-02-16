@@ -2655,7 +2655,7 @@ const BotBuilder = ({ userProfile }) => {
                                 type="text"
                                 value={treatmentChatInput}
                                 onChange={(e) => setTreatmentChatInput(e.target.value)}
-                                placeholder="Type your message here..."
+                                placeholder="Type your question and I’ll assist you instantly…"
                                 className="flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none transition-all duration-200 transform focus:scale-[1.01] text-sm"
                                 style={{ 
                                   borderColor: themeColor,
