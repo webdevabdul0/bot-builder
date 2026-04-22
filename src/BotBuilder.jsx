@@ -15,16 +15,20 @@ const BotBuilder = ({ userProfile }) => {
     { id: uuidv4(), text: 'Hope you are having a great day, how can I help you?', showAvatar: true },
     { id: uuidv4(), text: 'Would you like to get booked in with one of our dentists?', showAvatar: true }
   ]);
-  const [appointmentOptions] = useState([
+  
+  const appointmentOptions = [
     { id: uuidv4(), text: 'I am a NEW PATIENT and would like to send an ENQUIRY', type: 'callback' },
-    { id: uuidv4(), text: 'I am interested in INVISALIGN® (custom-made transparent removable clear \'aligners\')', type: 'treatment', treatmentName: 'INVISALIGN®' },
-    { id: uuidv4(), text: 'I am interested in DENTAL IMPLANTS', type: 'treatment', treatmentName: 'DENTAL IMPLANTS' },
-    { id: uuidv4(), text: 'I am interested in ORTHODONTICS', type: 'treatment', treatmentName: 'ORTHODONTICS' },
-    { id: uuidv4(), text: 'I am interested in COSMETIC DENTISTRY', type: 'treatment', treatmentName: 'COSMETIC DENTISTRY' },
-    { id: uuidv4(), text: 'I would like to enquire about an OTHER dental treatment or service', type: 'treatment', treatmentName: 'OTHER' },
+    ...treatmentOptions
+      .filter(opt => opt.name.trim())
+      .map(opt => ({
+        id: opt.id,
+        text: `I am interested in ${opt.name}`,
+        type: 'treatment',
+        treatmentName: opt.name
+      })),
     { id: uuidv4(), text: 'I need an EMERGENCY dental appointment', type: 'appointment', isEmergency: true },
     { id: uuidv4(), text: 'I am an EXISTING PATIENT (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
-  ]);
+  ];
   const [appointmentGreeting, setAppointmentGreeting] = useState('Hello! 👋 I can help you book an appointment at our clinic.\nWhat\'s your full name?');
   // Confirmation messages (standardized - not configurable)
   const confirmationMessages = {
