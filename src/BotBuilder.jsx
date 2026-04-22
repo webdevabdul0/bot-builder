@@ -16,19 +16,6 @@ const BotBuilder = ({ userProfile }) => {
     { id: uuidv4(), text: 'Would you like to get booked in with one of our dentists?', showAvatar: true }
   ]);
   
-  const appointmentOptions = [
-    { id: uuidv4(), text: 'I am a NEW PATIENT and would like to send an ENQUIRY', type: 'callback' },
-    ...treatmentOptions
-      .filter(opt => opt.name.trim())
-      .map(opt => ({
-        id: opt.id,
-        text: `I am interested in ${opt.name}`,
-        type: 'treatment',
-        treatmentName: opt.name
-      })),
-    { id: uuidv4(), text: 'I need an EMERGENCY dental appointment', type: 'appointment', isEmergency: true },
-    { id: uuidv4(), text: 'I am an EXISTING PATIENT (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
-  ];
   const [appointmentGreeting, setAppointmentGreeting] = useState('Hello! 👋 I can help you book an appointment at our clinic.\nWhat\'s your full name?');
   // Confirmation messages (standardized - not configurable)
   const confirmationMessages = {
@@ -46,6 +33,20 @@ const BotBuilder = ({ userProfile }) => {
     { id: uuidv4(), name: 'OTHER', description: 'Other dental treatments or services', brochureUrl: '' }
   ]);
   const treatmentFollowUp = 'Would you like me to send you a detailed brochure via email or help you schedule a free consultation with our dentist?';
+
+  const appointmentOptions = [
+    { id: uuidv4(), text: 'I am a NEW PATIENT and would like to send an ENQUIRY', type: 'callback' },
+    ...treatmentOptions
+      .filter(opt => opt.name.trim())
+      .map(opt => ({
+        id: opt.id,
+        text: `I am interested in ${opt.name}`,
+        type: 'treatment',
+        treatmentName: opt.name
+      })),
+    { id: uuidv4(), text: 'I need an EMERGENCY dental appointment', type: 'appointment', isEmergency: true },
+    { id: uuidv4(), text: 'I am an EXISTING PATIENT (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
+  ];
   
   // Callback Request workflow states (standardized - not configurable)
   const callbackGreeting = 'You\'d like a callback from our team—happy to arrange that! Could you please provide your name and the best phone number to reach you?';
