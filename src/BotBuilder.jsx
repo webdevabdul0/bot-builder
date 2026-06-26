@@ -53,6 +53,27 @@ const BotBuilder = ({ userProfile }) => {
   const callbackFollowUp = 'Thank you! Is there a specific reason you\'d like us to call or a particular question you have?';
   const callbackTiming = 'What time works best for your callback? (e.g., morning, afternoon, or a specific time)';
   const callbackConfirmation = 'We\'ve scheduled your callback for [chosen time]. One of our team members will be in touch. Thank you for reaching out!';
+  // Use case switcher
+  const [useCase, setUseCase] = useState('dental'); // 'dental' | 'general'
+
+  // General Business pain points
+  const [painPoints, setPainPoints] = useState([
+    { id: uuidv4(), name: 'Leads coming in but not converting to patients', botResponse: "That's the most common problem we fix. Most practices respond to enquiries 4-6 hours late — FlosslyOS responds in under 60 seconds automatically. Want to see it live?" },
+    { id: uuidv4(), name: 'Too many no-shows killing the schedule', botResponse: "The deposit automation alone cuts no-show rates by 50-60%. We can show you how it works in 15 minutes." },
+    { id: uuidv4(), name: "Spending on marketing but can't see what's working", botResponse: "Our attribution dashboard traces every attended patient back to the exact campaign that generated them. Worth a look?" }
+  ]);
+  const [meetingLink, setMeetingLink] = useState('');
+
+  const addPainPoint = () => {
+    setPainPoints([...painPoints, { id: uuidv4(), name: '', botResponse: '' }]);
+  };
+  const removePainPoint = (id) => {
+    if (painPoints.length > 1) setPainPoints(painPoints.filter(p => p.id !== id));
+  };
+  const updatePainPoint = (id, field, value) => {
+    setPainPoints(painPoints.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
   const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState('');
   const [companyOwnerEmail, setCompanyOwnerEmail] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
@@ -559,6 +580,9 @@ const BotBuilder = ({ userProfile }) => {
             { name: 'preferredTime', type: 'time', label: 'Preferred Time', required: true }
           ]
         },
+        useCase: useCase,
+        meetingLink: meetingLink,
+        painPoints: painPoints.filter(p => p.name.trim()),
         treatmentFlow: {
           options: treatmentOptions.filter(opt => opt.name.trim()),
           webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
@@ -732,6 +756,11 @@ const BotBuilder = ({ userProfile }) => {
         const loadedCalendarStatus = config.calendarStatus;
         setCalendarStatus((loadedCalendarStatus && typeof loadedCalendarStatus === 'object') ? null : (loadedCalendarStatus || null));
         setTreatmentOptions(config.treatmentFlow?.options || []);
+        setUseCase(config.useCase || 'dental');
+        setMeetingLink(config.meetingLink || '');
+        if (config.painPoints && config.painPoints.length > 0) {
+          setPainPoints(config.painPoints.map(p => ({ ...p, id: p.id || uuidv4() })));
+        }
         // Load AI Agent configuration
         setAiMode(config.aiMode || false);
         // Set botId from loaded config (important for subsequent saves)
@@ -892,6 +921,36 @@ const BotBuilder = ({ userProfile }) => {
     
     scrollToBottom();
     
+    // Handle pain point options (General Business mode)
+    if (option.type === 'painpoint') {
+      setTimeout(() => {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          setVisibleMessages(prev => [...prev, {
+            id: `painpoint-response-${Date.now()}`,
+            text: option.botResponse || "Thanks for sharing that! Let me show you how we can help.",
+            showAvatar: true,
+            isBot: true
+          }]);
+          scrollToBottom();
+          if (meetingLink) {
+            setTimeout(() => {
+              setVisibleMessages(prev => [...prev, {
+                id: `painpoint-cta-${Date.now()}`,
+                text: `__DEMO_LINK__`,
+                showAvatar: false,
+                isBot: true,
+                isDemoLink: true
+              }]);
+              scrollToBottom();
+            }, 1000);
+          }
+        }, 800);
+      }, 500);
+      return;
+    }
+
     // Handle treatment and callback options
     if (option.type === 'brochure' || option.type === 'consultation') {
       handleTreatmentOptionSelect(option);
@@ -1792,6 +1851,28 @@ const BotBuilder = ({ userProfile }) => {
             <h2 className="text-xl font-semibold text-flossy-text mb-6">Bot Settings</h2>
             
             <div className="space-y-4">
+              {/* Use Case Switcher */}
+              <div className="border border-blue-200 rounded-lg overflow-hidden bg-blue-50 p-4">
+                <label className="block text-xs font-semibold text-blue-800 mb-2 uppercase tracking-wide text-left">Use Case</label>
+                <div className="flex rounded-lg overflow-hidden border border-blue-200">
+                  <button
+                    onClick={() => setUseCase('dental')}
+                    className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${useCase === 'dental' ? 'bg-[#0061FB] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    🦷 Dental Practice
+                  </button>
+                  <button
+                    onClick={() => setUseCase('general')}
+                    className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${useCase === 'general' ? 'bg-[#0061FB] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    💼 General Business
+                  </button>
+                </div>
+                <p className="text-xs text-blue-600 mt-2 text-left">
+                  {useCase === 'dental' ? 'Shows dental-specific flows: treatments, appointments, emergency booking.' : 'Shows pain-point routing with a meeting/demo link CTA.'}
+                </p>
+              </div>
+
               {/* Basic Settings Accordion */}
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
@@ -2176,7 +2257,8 @@ const BotBuilder = ({ userProfile }) => {
                 )}
               </div>
 
-              {/* Treatment Enquiry Workflow Accordion */}
+              {/* Treatment Enquiry Workflow Accordion — Dental only */}
+              {useCase === 'dental' && (
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleAccordion('treatmentFlow')}
@@ -2190,8 +2272,6 @@ const BotBuilder = ({ userProfile }) => {
                 </button>
                 {accordionStates.treatmentFlow && (
                   <div className="p-4 space-y-4 border-t border-gray-200 bg-gradient-to-r from-purple-50/50 to-pink-50/50">
-
-
                   <div>
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-sm font-medium text-gray-700">Treatment Options</span>
@@ -2202,7 +2282,6 @@ const BotBuilder = ({ userProfile }) => {
                           + Add Treatment
                         </button>
                       </div>
-                    
                       <div className="space-y-3">
                         {treatmentOptions.map((option, index) => (
                           <div key={option.id} className="border border-gray-200 rounded-md p-3 bg-white">
@@ -2217,12 +2296,9 @@ const BotBuilder = ({ userProfile }) => {
                                 </button>
                               )}
                             </div>
-                          
                             <div className="space-y-2">
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1 text-left">
-                                  Treatment Name
-                                </label>
+                                <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Treatment Name</label>
                                 <input
                                   type="text"
                                   value={option.name}
@@ -2231,11 +2307,8 @@ const BotBuilder = ({ userProfile }) => {
                                   placeholder="e.g., INVISALIGN®"
                                 />
                               </div>
-                              
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1 text-left">
-                                  Description
-                                </label>
+                                <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Description</label>
                                 <textarea
                                   value={option.description}
                                   onChange={(e) => updateTreatmentOption(option.id, 'description', e.target.value)}
@@ -2244,11 +2317,8 @@ const BotBuilder = ({ userProfile }) => {
                                   placeholder="Brief description of the treatment"
                                 />
                               </div>
-                              
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1 text-left">
-                                  Brochure URL (Optional)
-                                </label>
+                                <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Brochure URL (Optional)</label>
                                 <input
                                   type="url"
                                   value={option.brochureUrl}
@@ -2259,16 +2329,85 @@ const BotBuilder = ({ userProfile }) => {
                                 <p className="text-xs text-gray-500 mt-1 text-left">PDF or document URL to send to users</p>
                               </div>
                             </div>
+                          </div>
+                        ))}
+                      </div>
+                  </div>
+                  </div>
+                )}
+              </div>
+              )}
+
+              {/* Pain Points Workflow — General Business only */}
+              {useCase === 'general' && (
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="w-full px-3 sm:px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 flex items-center space-x-3">
+                  <MessageCircle className="w-5 h-5 text-emerald-600" />
+                  <span className="font-medium text-gray-900">Pain Points &amp; Responses</span>
+                </div>
+                <div className="p-4 space-y-4 border-t border-gray-200">
+                  {/* Meeting Link */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 text-left">Meeting / Demo Link</label>
+                    <input
+                      type="url"
+                      value={meetingLink}
+                      onChange={(e) => setMeetingLink(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
+                      placeholder="https://calendly.com/your-link"
+                    />
+                    <p className="text-xs text-gray-500 mt-1 text-left">Calendly, cal.com, or any booking link — shown as "Book Demo" CTA</p>
+                  </div>
+
+                  {/* Pain Points */}
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-medium text-gray-700">Pain Points</span>
+                      <button
+                        onClick={addPainPoint}
+                        className="px-3 h-10 bg-[#0061FB] text-white text-xs rounded-lg hover:bg-[#0052E6] transition-colors"
+                      >
+                        + Add Option
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {painPoints.map((point, index) => (
+                        <div key={point.id} className="border border-gray-200 rounded-md p-3 bg-white">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-medium text-gray-600">Option {index + 1}</span>
+                            {painPoints.length > 1 && (
+                              <button onClick={() => removePainPoint(point.id)} className="text-red-500 hover:text-red-700 text-xs">Remove</button>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Option Label (what user sees)</label>
+                              <input
+                                type="text"
+                                value={point.name}
+                                onChange={(e) => updatePainPoint(point.id, 'name', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
+                                placeholder="e.g., Leads coming in but not converting"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Bot Response</label>
+                              <textarea
+                                value={point.botResponse}
+                                onChange={(e) => updatePainPoint(point.id, 'botResponse', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
+                                rows="2"
+                                placeholder="What the bot says after this option is selected"
+                              />
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  </div>
-                )}
+                </div>
               </div>
-
-
+              )}
 
               {/* Save/Load Bot Buttons */}
               <div className="pt-4 space-y-3">
@@ -2405,22 +2544,36 @@ const BotBuilder = ({ userProfile }) => {
                               {!message.showAvatar && <div className="w-8 h-8 flex-shrink-0"></div>}
                             </>
                           )}
-                          <div 
+                          <div
                             className={`rounded-2xl px-4 py-3 shadow-sm border max-w-xs transform transition-all duration-300 hover:shadow-md ${
-                              message.isUser 
-                                ? 'bg-blue-500 text-white rounded-tr-sm border-blue-500' 
-                                : 'bg-white rounded-tl-sm border-gray-100 text-gray-800'
+                              message.isDemoLink
+                                ? 'bg-white rounded-tl-sm border-gray-100'
+                                : message.isUser
+                                  ? 'bg-blue-500 text-white rounded-tr-sm border-blue-500'
+                                  : 'bg-white rounded-tl-sm border-gray-100 text-gray-800'
                             }`}
-                            style={message.isUser ? { backgroundColor: themeColor } : {}}
+                            style={message.isUser && !message.isDemoLink ? { backgroundColor: themeColor } : {}}
                           >
-                            <p 
+                            {message.isDemoLink ? (
+                              <a
+                                href={meetingLink || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full text-center text-sm font-semibold py-2 px-4 rounded-lg text-white transition-colors"
+                                style={{ backgroundColor: themeColor }}
+                              >
+                                📅 Book a Demo
+                              </a>
+                            ) : (
+                            <p
                               className="text-sm leading-relaxed text-left"
-                              dangerouslySetInnerHTML={{ 
-                                __html: message.isUser 
-                                  ? message.text 
+                              dangerouslySetInnerHTML={{
+                                __html: message.isUser
+                                  ? message.text
                                   : message.text.replace('[Company Name]', companyName || 'Your Company')
                               }}
                             />
+                            )}
                             <p className={`text-xs mt-1 text-left ${message.isUser ? 'text-blue-100' : 'text-gray-400'}`}>
                               Just now
                             </p>
@@ -2481,22 +2634,38 @@ const BotBuilder = ({ userProfile }) => {
                       {/* Interactive Options */}
                       {showOptions && (
                         <div className="space-y-3 mt-4 animate-slideInUp" style={{ animation: 'slideInUp 0.6s ease-out both' }}>
-                          <div className="text-sm text-gray-600 text-left px-3 animate-fadeIn">Please select an option:</div>
-                          {appointmentOptions.filter(opt => opt.text.trim()).map((option, index) => (
+                          <div className="text-sm text-gray-600 text-left px-3 animate-fadeIn">
+                            {useCase === 'general' ? 'Which of these sounds most like your practice right now?' : 'Please select an option:'}
+                          </div>
+                          {useCase === 'general'
+                            ? painPoints.filter(p => p.name.trim()).map((point, index) => (
+                              <div
+                                key={point.id}
+                                onClick={() => handleOptionSelect({ id: point.id, text: point.name, type: 'painpoint', botResponse: point.botResponse })}
+                                className="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-300 cursor-pointer hover:shadow-md transform hover:scale-[1.02] animate-slideInLeft"
+                                style={{ backgroundColor: '#f8fafc', animation: `slideInLeft 0.3s ease-out ${index * 0.05}s both` }}
+                              >
+                                <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200" style={{ borderColor: themeColor }}>
+                                  <div className="w-3 h-3 rounded-full transition-all duration-200 opacity-0 scale-0 hover:opacity-100 hover:scale-100" style={{ backgroundColor: themeColor }}></div>
+                                </div>
+                                <span className="text-sm text-gray-800 font-medium">{point.name}</span>
+                              </div>
+                            ))
+                            : appointmentOptions.filter(opt => opt.text.trim()).map((option, index) => (
                             <div
                               key={option.id}
                               onClick={() => handleOptionSelect(option)}
                               className="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-300 cursor-pointer hover:shadow-md transform hover:scale-[1.02] animate-slideInLeft"
-                              style={{ 
+                              style={{
                                 backgroundColor: '#f8fafc',
                                 animation: `slideInLeft 0.3s ease-out ${index * 0.05}s both`
                               }}
                             >
-                              <div 
+                              <div
                                 className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200"
                                 style={{ borderColor: themeColor }}
                               >
-                                <div 
+                                <div
                                   className="w-3 h-3 rounded-full transition-all duration-200 opacity-0 scale-0 hover:opacity-100 hover:scale-100"
                                   style={{ backgroundColor: themeColor }}
                                 ></div>
@@ -2811,35 +2980,59 @@ const BotBuilder = ({ userProfile }) => {
                   </div>
                       ))}
 
-                      {/* Static Options Preview */}
-                      {appointmentOptions.filter(opt => opt.text.trim()).length > 0 && (
+                      {/* Static Options Preview — General Business */}
+                      {useCase === 'general' && painPoints.filter(p => p.name.trim()).length > 0 && (
+                        <div className="space-y-3 mt-4">
+                          <div className="text-sm text-gray-600 text-left px-3">Which of these sounds most like your practice right now?</div>
+                          {painPoints.filter(p => p.name.trim()).map((point, index) => (
+                            <div
+                              key={point.id}
+                              className="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 cursor-pointer hover:shadow-sm"
+                              style={{ backgroundColor: '#f8fafc' }}
+                            >
+                              <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all" style={{ borderColor: themeColor }}>
+                                {index === 0 && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: themeColor }}></div>}
+                              </div>
+                              <span className="text-sm text-gray-800 font-medium">{point.name}</span>
+                            </div>
+                          ))}
+                          {meetingLink && (
+                            <div className="mt-3">
+                              <a
+                                href={meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full text-center text-sm font-semibold py-2 px-4 rounded-lg text-white transition-colors"
+                                style={{ backgroundColor: themeColor }}
+                              >
+                                📅 Book a Demo
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Static Options Preview — Dental */}
+                      {useCase === 'dental' && appointmentOptions.filter(opt => opt.text.trim()).length > 0 && (
                         <div className="space-y-3 mt-4">
                           <div className="text-sm text-gray-600 text-left px-3">Please select an option:</div>
                           {appointmentOptions.filter(opt => opt.text.trim()).map((option, index) => (
                             <div
-                          key={option.id}
+                              key={option.id}
                               className="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 cursor-pointer hover:shadow-sm"
                               style={{ backgroundColor: '#f8fafc' }}
                             >
-                              <div 
-                                className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                                style={{ borderColor: themeColor }}
-                              >
-                                {index === 0 && (
-                                  <div 
-                                    className="w-3 h-3 rounded-full"
-                                    style={{ backgroundColor: themeColor }}
-                                  ></div>
-                                )}
+                              <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all" style={{ borderColor: themeColor }}>
+                                {index === 0 && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: themeColor }}></div>}
                               </div>
                               <span className="text-sm text-gray-800 font-medium">{option.text}</span>
                             </div>
-                      ))}
+                          ))}
                         </div>
-                  )}
+                      )}
 
-                      {/* Static Treatment Options Preview */}
-                      {treatmentOptions.filter(opt => opt.name.trim()).length > 0 && (
+                      {/* Static Treatment Options Preview — Dental */}
+                      {useCase === 'dental' && treatmentOptions.filter(opt => opt.name.trim()).length > 0 && (
                         <div className="space-y-3 mt-4">
                           <div className="text-sm text-gray-600 text-left px-3">Please select a treatment:</div>
                           {treatmentOptions.filter(opt => opt.name.trim()).map((option, index) => (
@@ -2848,14 +3041,8 @@ const BotBuilder = ({ userProfile }) => {
                               className="flex items-start space-x-3 p-3 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 cursor-pointer hover:shadow-sm"
                               style={{ backgroundColor: '#f8fafc' }}
                             >
-                              <div 
-                                className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all mt-0.5"
-                                style={{ borderColor: themeColor }}
-                              >
-                                <div 
-                                  className="w-3 h-3 rounded-full transition-all duration-200 opacity-0 scale-0"
-                                  style={{ backgroundColor: themeColor }}
-                                ></div>
+                              <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all mt-0.5" style={{ borderColor: themeColor }}>
+                                <div className="w-3 h-3 rounded-full transition-all duration-200 opacity-0 scale-0" style={{ backgroundColor: themeColor }}></div>
                               </div>
                               <div className="flex-1 text-left">
                                 <span className="text-sm text-gray-800 font-medium block text-left">{option.name}</span>
@@ -2866,15 +3053,15 @@ const BotBuilder = ({ userProfile }) => {
                         </div>
                       )}
 
-                      {appointmentOptions.filter(opt => opt.text.trim()).length === 0 && treatmentOptions.filter(opt => opt.name.trim()).length === 0 && (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
+                      {useCase === 'dental' && appointmentOptions.filter(opt => opt.text.trim()).length === 0 && treatmentOptions.filter(opt => opt.name.trim()).length === 0 && (
+                        <div className="text-center py-8">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </div>
                           <p className="text-gray-500 text-sm text-left">Add appointment options to see them here</p>
-                    </div>
+                        </div>
                       )}
                     </>
                   )}
