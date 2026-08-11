@@ -44,8 +44,8 @@ const BotBuilder = ({ userProfile }) => {
         type: 'treatment',
         treatmentName: opt.name
       })),
-    { id: uuidv4(), text: 'I need an EMERGENCY dental appointment', type: 'appointment', isEmergency: true },
-    { id: uuidv4(), text: 'I am an EXISTING PATIENT (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
+    { id: uuidv4(), text: 'I need an emergency dental appointment', type: 'appointment', isEmergency: true },
+    { id: uuidv4(), text: 'I am an existing patient (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
   ];
   
   // Callback Request workflow states (standardized - not configurable)
