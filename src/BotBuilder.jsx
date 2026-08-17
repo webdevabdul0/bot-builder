@@ -17,6 +17,9 @@ const BotBuilder = ({ userProfile }) => {
   ]);
   
   const [appointmentGreeting, setAppointmentGreeting] = useState('Hello! 👋 I can help you book an appointment at our clinic.\nWhat\'s your full name?');
+  const [newPatientText, setNewPatientText] = useState('I am a NEW PATIENT and would like to send an ENQUIRY');
+  const [emergencyText, setEmergencyText] = useState('I need an emergency dental appointment');
+  const [existingPatientText, setExistingPatientText] = useState('I am an existing patient (book / amend / cancel an appointment, update your details or send an enquiry)');
   // Confirmation messages (standardized - not configurable)
   const confirmationMessages = {
     success: '✅ I\'ve reserved your appointment for [chosen date/time].\nYou\'ll receive a confirmation email shortly.',
@@ -35,7 +38,7 @@ const BotBuilder = ({ userProfile }) => {
   const treatmentFollowUp = 'Would you like me to send you a detailed brochure via email or help you schedule a free consultation with our dentist?';
 
   const appointmentOptions = [
-    { id: uuidv4(), text: 'I am a NEW PATIENT and would like to send an ENQUIRY', type: 'callback' },
+    { id: uuidv4(), text: newPatientText, type: 'callback' },
     ...treatmentOptions
       .filter(opt => opt.name.trim())
       .map(opt => ({
@@ -44,8 +47,8 @@ const BotBuilder = ({ userProfile }) => {
         type: 'treatment',
         treatmentName: opt.name
       })),
-    { id: uuidv4(), text: 'I need an emergency dental appointment', type: 'appointment', isEmergency: true },
-    { id: uuidv4(), text: 'I am an existing patient (book / amend / cancel an appointment, update your details or send an enquiry)', type: 'appointment', isExisting: true }
+    { id: uuidv4(), text: emergencyText, type: 'appointment', isEmergency: true },
+    { id: uuidv4(), text: existingPatientText, type: 'appointment', isExisting: true }
   ];
   
   // Callback Request workflow states (standardized - not configurable)
@@ -583,6 +586,11 @@ const BotBuilder = ({ userProfile }) => {
         useCase: useCase,
         meetingLink: meetingLink,
         painPoints: painPoints.filter(p => p.name.trim()),
+        dentalMenuButtons: {
+          newPatient: newPatientText,
+          emergency: emergencyText,
+          existingPatient: existingPatientText,
+        },
         treatmentFlow: {
           options: treatmentOptions.filter(opt => opt.name.trim()),
           webhookUrl: 'https://n8n.flossly.ai/webhook/gmail-brochure' // n8n webhook for Gmail brochure requests
@@ -758,6 +766,9 @@ const BotBuilder = ({ userProfile }) => {
         setTreatmentOptions(config.treatmentFlow?.options || []);
         setUseCase(config.useCase || 'dental');
         setMeetingLink(config.meetingLink || '');
+        setNewPatientText(config.dentalMenuButtons?.newPatient || 'I am a NEW PATIENT and would like to send an ENQUIRY');
+        setEmergencyText(config.dentalMenuButtons?.emergency || 'I need an emergency dental appointment');
+        setExistingPatientText(config.dentalMenuButtons?.existingPatient || 'I am an existing patient (book / amend / cancel an appointment, update your details or send an enquiry)');
         if (config.painPoints && config.painPoints.length > 0) {
           setPainPoints(config.painPoints.map(p => ({ ...p, id: p.id || uuidv4() })));
         }
@@ -2272,6 +2283,42 @@ const BotBuilder = ({ userProfile }) => {
                 </button>
                 {accordionStates.treatmentFlow && (
                   <div className="p-4 space-y-4 border-t border-gray-200 bg-gradient-to-r from-purple-50/50 to-pink-50/50">
+                  {/* Main Menu Fixed Buttons */}
+                  <div>
+                    <span className="text-sm font-medium text-gray-700 block mb-3">Main Menu Buttons</span>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1 text-left">New Patient Button</label>
+                        <input
+                          type="text"
+                          value={newPatientText}
+                          onChange={(e) => setNewPatientText(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
+                          placeholder="I am a NEW PATIENT and would like to send an ENQUIRY"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Emergency Button</label>
+                        <input
+                          type="text"
+                          value={emergencyText}
+                          onChange={(e) => setEmergencyText(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
+                          placeholder="I need an emergency dental appointment"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1 text-left">Existing Patient Button</label>
+                        <input
+                          type="text"
+                          value={existingPatientText}
+                          onChange={(e) => setExistingPatientText(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0061FB] focus:border-[#0061FB] transition-all"
+                          placeholder="I am an existing patient..."
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <div>
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-sm font-medium text-gray-700">Treatment Options</span>
